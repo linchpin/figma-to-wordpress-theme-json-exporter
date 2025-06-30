@@ -1,6 +1,7 @@
 // Interface for export options
 export interface ExportOptions {
 	generateTypography?: boolean;
+	generateWordPressTypography?: boolean; // Use WordPress-compatible typography structure
 	generateColorPresets?: boolean;
 	generateSpacingPresets?: boolean;
 	baseTheme?: any;
@@ -14,6 +15,8 @@ export interface ExportOptions {
 		spacing?: boolean;
 		[key: string]: boolean | undefined;
 	}; // Which collections to apply rem conversion to
+	validateThemeJson?: boolean; // Whether to validate the generated theme.json (default: true)
+	strictValidation?: boolean; // Whether to treat warnings as errors in validation (default: false)
 }
 
 // TypeScript interface for Figma Variable Collection Mode
@@ -37,4 +40,5 @@ export interface ColorPresetData {
 	color: string;
 	collectionName: string;
 	resolvedColor?: string; // Actual hex/rgb value for preview
+	paintStyleId?: string; // ID of the associated paint style for better labeling
 } 

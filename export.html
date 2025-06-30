@@ -500,14 +500,21 @@
 	
 	<div class="options">
 	  <div class="option-row">
-		<input type="checkbox" id="generate-typography" />
-		<label for="generate-typography">Generate typography presets from text styles <em>(10up tooling)</em></label>
-	  </div>
-	  <div class="option-row">
 		<input type="checkbox" id="generate-color-presets" />
 		<label for="generate-color-presets">Generate color presets from color variables</label>
 		<button type="button" class="customize-button" id="customize-colors" disabled>Customize</button>
 	  </div>
+
+	  <div class="option-row">
+		<input type="checkbox" id="generate-typography" />
+		<label for="generate-typography">Generate typography presets from text styles <em>(10up tooling)</em></label>
+	  </div>
+
+	  <div class="option-row">
+		<input type="checkbox" id="generate-wordpress-typography" />
+		<label for="generate-wordpress-typography">Generate WordPress-native typography structure <em>(fontFamilies, fontSizes, etc.)</em></label>
+	  </div>
+
 	  <div class="option-row">
 		<input type="checkbox" id="generate-spacing-presets" />
 		<label for="generate-spacing-presets">Generate spacing presets from spacing variables</label>
@@ -776,6 +783,7 @@
 	document.getElementById("export").addEventListener("click", () => {
 	  // Get the state of the checkboxes
 	  const generateTypography = document.getElementById("generate-typography").checked;
+	  const generateWordPressTypography = document.getElementById("generate-wordpress-typography").checked;
 	  const generateColorPresets = document.getElementById("generate-color-presets").checked;
 	  const generateSpacingPresets = document.getElementById("generate-spacing-presets").checked;
 	  const useRem = document.getElementById("use-rem").checked;
@@ -793,6 +801,7 @@
 		  type: "EXPORT",
 		  options: {
 			generateTypography,
+			generateWordPressTypography,
 			generateColorPresets,
 			generateSpacingPresets,
 			baseTheme,

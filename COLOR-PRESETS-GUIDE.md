@@ -211,4 +211,132 @@ The plugin generates:
 - **Unexpected names**: Check your variable naming structure and hierarchy
 - **Empty color presets**: Verify that you have COLOR type variables in collections other than "Primitives"
 
-For more information on WordPress color presets, see the [WordPress documentation](https://developer.wordpress.org/block-editor/how-to-guides/themes/theme-json/#color). 
+For more information on WordPress color presets, see the [WordPress documentation](https://developer.wordpress.org/block-editor/how-to-guides/themes/theme-json/#color).
+
+# Color Presets Guide - Paint Style Integration
+
+This guide explains how the Figma to WordPress Theme.json Exporter handles color presets with Paint Style integration for better labeling control.
+
+## Overview
+
+The plugin now uses **Paint Styles** for user-friendly display names while maintaining **Variables** for proper CSS variable references. This gives you the best of both worlds:
+
+- **Paint Styles**: Provide human-readable, designer-friendly names
+- **Variables**: Ensure proper CSS variable references and maintain design system consistency
+
+## How It Works
+
+### 1. Variable-Based Colors with Paint Style Labels
+
+When you have a Paint Style that references a Variable:
+
+```
+Paint Style: "Midnight" 
+  ↓ references
+Variable: "brand/primary"
+  ↓ generates
+WordPress Preset: {
+  name: "Midnight",           // From Paint Style
+  slug: "brand-primary",      // From Variable name
+  color: "var(--wp--custom--brand--primary)"  // From Variable
+}
+```
+
+### 2. Standalone Paint Styles
+
+When you have a Paint Style without bound variables:
+
+```
+Paint Style: "Standalone Blue"
+  ↓ generates
+WordPress Preset: {
+  name: "Standalone Blue",    // From Paint Style
+  slug: "standalone-blue",    // From Paint Style name
+  color: "#0000ff"           // Direct hex value
+}
+```
+
+### 3. Variables Without Paint Styles
+
+When you have a Variable without a bound Paint Style:
+
+```
+Variable: "brand/primary"
+  ↓ generates
+WordPress Preset: {
+  name: "Brand Primary",      // From Variable name
+  slug: "brand-primary",      // From Variable name
+  color: "var(--wp--custom--brand--primary)"  // From Variable
+}
+```
+
+## Best Practices
+
+### For Designers
+
+1. **Create Paint Styles** for colors you want to appear in the UI with friendly names
+2. **Bind Paint Styles to Variables** for design system consistency
+3. **Use descriptive Paint Style names** like "Midnight", "Forest Green", "Sunset Orange"
+4. **Keep Variable names semantic** like "brand/primary", "brand/secondary", "accent/warning"
+
+### For Developers
+
+1. **CSS variables will always reference the Variable name**, not the Paint Style name
+2. **The slug in theme.json will match the Variable name** for consistency
+3. **Display names in the UI will use Paint Style names** when available
+4. **Fallback to Variable names** when no Paint Style is bound
+
+## Example Workflow
+
+1. **Create Variables** in Figma:
+   - `brand/primary` (red color)
+   - `brand/secondary` (green color)
+
+2. **Create Paint Styles** and bind them to Variables:
+   - Paint Style "Midnight" → bound to `brand/primary`
+   - Paint Style "Forest Green" → bound to `brand/secondary`
+
+3. **Export to WordPress**:
+   ```json
+   {
+     "settings": {
+       "color": {
+         "palette": [
+           {
+             "name": "Midnight",
+             "slug": "brand-primary",
+             "color": "var(--wp--custom--brand--primary)"
+           },
+           {
+             "name": "Forest Green", 
+             "slug": "brand-secondary",
+             "color": "var(--wp--custom--brand--secondary)"
+           }
+         ]
+       }
+     }
+   }
+   ```
+
+4. **Use in WordPress**:
+   ```css
+   .my-element {
+     background-color: var(--wp--preset--color--brand-primary);
+   }
+   ```
+
+## Benefits
+
+- **Better UX**: Users see friendly names like "Midnight" instead of "brand/primary"
+- **Consistent References**: CSS variables always reference the semantic Variable names
+- **Design System Integrity**: Variables maintain the design system structure
+- **Flexibility**: Can use Paint Styles for presentation while keeping Variables for logic
+
+## Migration
+
+If you're upgrading from the previous version:
+
+- **Existing exports will continue to work** - the plugin maintains backward compatibility
+- **New exports will show Paint Style names** in the UI when available
+- **CSS variable references remain unchanged** - they still use Variable names
+- **No changes needed to existing WordPress themes** - the CSS variable structure is preserved 

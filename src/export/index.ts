@@ -2,9 +2,10 @@ import { ExportOptions } from '../types';
 import { mergeCollectionData } from '../utils/index';
 import { processCollectionData, processCollectionModeData } from '../collection/index';
 import { processButtonStyles, clearProcessedButtonVariants } from '../button/index';
-import { getTypographyPresets } from '../typography/index';
+import { getTypographyPresets, getWordPressTypographyPresets } from '../typography/index';
 import { getColorPresets } from '../color/index';
 import { getSpacingPresets } from '../spacing/index';
+import { validateThemeJson, formatValidationResults } from '../utils/validation';
 
 export async function exportToJSON(options: ExportOptions = {}) {
 	// Clear the set of processed button variants at the start of a new export
@@ -148,12 +149,39 @@ export async function exportToJSON(options: ExportOptions = {}) {
 	}
 
 	// Add typography presets if requested
-	if (options.generateTypography) {
-		const typographyPresets = await getTypographyPresets(options);
-		if (typographyPresets.length > 0) {
-			theme.settings.custom.typography = theme.settings.custom.typography || {};
-			theme.settings.custom.typography.presets = typographyPresets;
+	if (options.generateTypography || options.generateWordPressTypography) {
+		console.log('Typography generation requested:', {
+			generateTypography: options.generateTypography,
+			generateWordPressTypography: options.generateWordPressTypography
+		});
+		
+		if (options.generateWordPressTypography) {
+			// Use WordPress-compatible typography structure
+			console.log('Generating WordPress typography structure...');
+			const typographySettings = await getWordPressTypographyPresets(options);
+			console.log('WordPress typography settings result:', typographySettings);
+			
+			if (Object.keys(typographySettings).length > 0) {
+				// Ensure typography settings exist
+				theme.settings.typography = theme.settings.typography || {};
+				
+				// Merge typography settings into the theme
+				Object.assign(theme.settings.typography, typographySettings);
+				console.log('Typography settings merged into theme:', theme.settings.typography);
+			} else {
+				console.log('No typography settings generated - empty result');
+			}
+		} else {
+			// Use legacy custom typography presets for backward compatibility
+			console.log('Generating legacy typography presets...');
+			const typographyPresets = await getTypographyPresets(options);
+			if (typographyPresets.length > 0) {
+				theme.settings.custom.typography = theme.settings.custom.typography || {};
+				theme.settings.custom.typography.presets = typographyPresets;
+			}
 		}
+	} else {
+		console.log('No typography generation requested');
 	}
 
 	// Add color presets if requested
@@ -174,9 +202,32 @@ export async function exportToJSON(options: ExportOptions = {}) {
 		}
 	}
 
+	// Validate the generated theme.json if validation is enabled
+	let validationResult = null;
+	if (options.validateThemeJson !== false) { // Default to true
+		try {
+			validationResult = await validateThemeJson(theme, {
+				strict: options.strictValidation || false,
+				allowCustomProperties: true // Allow custom properties since we generate them
+			});
+		} catch (error) {
+			console.warn('Theme.json validation failed:', error);
+			validationResult = {
+				isValid: false,
+				errors: [`Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`],
+				warnings: []
+			};
+		}
+	}
+
 	// Send the result back to the UI
 	figma.ui.postMessage({
 		type: "EXPORT_RESULT",
-		files: allFiles
+		files: allFiles,
+		validation: validationResult ? {
+			isValid: validationResult.isValid,
+			message: formatValidationResults(validationResult),
+			details: validationResult
+		} : null
 	});
 } 

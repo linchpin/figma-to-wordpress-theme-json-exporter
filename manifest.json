@@ -1,11 +1,17 @@
 {
-  "name": "WordPress Theme.json Export",
+  "name": "Figma to WordPress Theme.json",
   "id": "1476325215239454172",
   "api": "1.0.0",
   "editorType": ["figma"],
   "permissions": [],
   "main": "dist/code.js",
-  "networkAccess": { "allowedDomains": ["https://cdnjs.cloudflare.com"] },
+  "networkAccess": {
+      "allowedDomains": ["https://cdnjs.cloudflare.com",
+      "https://schemas.wp.org/trunk/theme.json",
+      "https://fonts.googleapis.com",
+      "https://fonts.gstatic.com"
+    ]
+  },
   "menu": [
     { "command": "export", "name": "Export to theme.json" },
     { "command": "css-vars", "name": "Apply CSS Variable Syntax" }
