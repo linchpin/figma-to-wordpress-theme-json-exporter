@@ -12,8 +12,13 @@ export async function exportToJSON(options: ExportOptions = {}) {
 
 	const collections = await figma.variables.getLocalVariableCollectionsAsync();
 
+	// Filter collections based on selectedCollections option
+	const filteredCollections = options.selectedCollections && options.selectedCollections.length > 0
+		? collections.filter(collection => options.selectedCollections!.includes(collection.id))
+		: collections;
+
 	// Find the "Primitives" collection first
-	const primitivesCollection = collections.find(
+	const primitivesCollection = filteredCollections.find(
 		collection => collection.name.toLowerCase() === "primitives"
 	);
 
@@ -43,7 +48,7 @@ export async function exportToJSON(options: ExportOptions = {}) {
 	}
 
 	// Process all other collections
-	for (const collection of collections) {
+	for (const collection of filteredCollections) {
 		// Skip the primitives collection as we've already processed it
 		if (collection.name.toLowerCase() === "primitives") {
 			continue;
@@ -66,7 +71,7 @@ export async function exportToJSON(options: ExportOptions = {}) {
 			// 1. Multiple modes always create section files
 			// 2. Single mode with non-button colors creates section files unless it's only with Primitives
 			const hasNonButtonColors = firstModeData && Object.keys(firstModeData).some(key => key !== 'button');
-			const isOnlyWithPrimitives = collections.length === 2 && primitivesCollection;
+			const isOnlyWithPrimitives = filteredCollections.length === 2 && primitivesCollection;
 			const shouldCreateSectionFile = collection.modes.length > 1 || (hasNonButtonColors && !isOnlyWithPrimitives);
 
 			if (shouldCreateSectionFile) {

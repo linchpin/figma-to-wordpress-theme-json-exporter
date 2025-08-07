@@ -25,6 +25,26 @@ figma.ui.onmessage = async (e) => {
 				error: error instanceof Error ? error.message : "Failed to get color presets"
 			});
 		}
+	} else if (e.type === "GET_COLLECTIONS") {
+		// Get all available collections for the UI
+		try {
+			const collections = await figma.variables.getLocalVariableCollectionsAsync();
+			const collectionData = collections.map(collection => ({
+				id: collection.id,
+				name: collection.name,
+				modeCount: collection.modes.length,
+				variableCount: collection.variableIds.length
+			}));
+			figma.ui.postMessage({
+				type: "COLLECTIONS_RESULT",
+				collections: collectionData
+			});
+		} catch (error) {
+			figma.ui.postMessage({
+				type: "COLLECTIONS_RESULT",
+				error: error instanceof Error ? error.message : "Failed to get collections"
+			});
+		}
 	} else if (e.type === "APPLY_CSS_VAR_SYNTAX") {
 		// Apply CSS var syntax to Figma variables
 		try {

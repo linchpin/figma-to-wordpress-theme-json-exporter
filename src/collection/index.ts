@@ -10,7 +10,7 @@ export async function processCollectionModeData(collection: VariableCollection, 
 
 	for (const variableId of variableIds) {
 		const variable = await figma.variables.getVariableByIdAsync(variableId);
-		if (!variable) continue;
+		if (!variable || typeof variable !== 'object') continue;
 
 		const { name, resolvedType, valuesByMode } = variable;
 		const value = valuesByMode[mode.modeId];
@@ -33,10 +33,17 @@ export async function processCollectionModeData(collection: VariableCollection, 
 
 			if (isVariableAlias(value)) {
 				const currentVar = await figma.variables.getVariableByIdAsync((value as any).id);
+
 				if (currentVar) {
 					// Convert the reference to a CSS custom property reference with lowercase parts
-					const referenceParts = currentVar.name.split("/").map(part => part.toLowerCase());
-					obj[leafName] = buildCssVarReference(referenceParts);
+					try {
+						const referenceParts = currentVar.name.split("/").map(part => part.toLowerCase());
+
+						obj[leafName] = buildCssVarReference(referenceParts);
+					} catch( e ) {
+						console.log( 'Error building CSS var reference:', e );
+					}
+
 				}
 			} else {
 				obj[leafName] = resolvedType === "COLOR" ?

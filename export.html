@@ -484,6 +484,80 @@
 	  font-size: 0.9rem;
 	  color: var(--figma-color-text-secondary);
 	}
+
+	.collections-section {
+	  background-color: var(--figma-color-bg-secondary);
+	  padding: var(--spacing);
+	  border-radius: 4px;
+	  margin-bottom: var(--spacing);
+	}
+
+	.collections-label {
+	  display: block;
+	  font-size: 0.9rem;
+	  font-weight: bold;
+	  margin-bottom: calc(var(--spacing) / 2);
+	  color: var(--figma-color-text);
+	}
+
+	.collections-container {
+	  max-height: 200px;
+	  overflow-y: auto;
+	  margin-bottom: calc(var(--spacing) / 2);
+	}
+
+	.loading-collections {
+	  color: var(--figma-color-text-secondary);
+	  font-style: italic;
+	  text-align: center;
+	  padding: var(--spacing);
+	}
+
+	.collection-item {
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 2);
+	  padding: calc(var(--spacing) / 2);
+	  border: 1px solid var(--figma-color-border);
+	  border-radius: 4px;
+	  margin-bottom: calc(var(--spacing) / 2);
+	  cursor: pointer;
+	  transition: background-color 0.2s;
+	}
+
+	.collection-item:hover {
+	  background-color: var(--figma-color-bg-hover);
+	}
+
+	.collection-item.selected {
+	  background-color: var(--figma-color-bg-selected);
+	  border-color: var(--figma-color-border-selected);
+	}
+
+	.collection-info {
+	  flex: 1;
+	  min-width: 0;
+	}
+
+	.collection-name {
+	  font-weight: 500;
+	  font-size: 0.9rem;
+	  margin-bottom: 2px;
+	}
+
+	.collection-details {
+	  font-size: 0.8rem;
+	  color: var(--figma-color-text-secondary);
+	}
+
+	.collection-checkbox {
+	  flex-shrink: 0;
+	}
+
+	.collections-actions {
+	  display: flex;
+	  gap: calc(var(--spacing) / 2);
+	}
   </style>
   <main>
 	<div class="info-text">
@@ -529,6 +603,17 @@
 		<div class="option-row">
 		  <input type="checkbox" id="rem-spacing" />
 		  <label for="rem-spacing">Apply to Spacing variables</label>
+		</div>
+	  </div>
+
+	  <div class="collections-section">
+		<label class="collections-label">Select Collections to Export</label>
+		<div class="collections-container" id="collections-container">
+		  <div class="loading-collections">Loading collections...</div>
+		</div>
+		<div class="collections-actions">
+		  <button type="button" class="copy-button" id="select-all-collections">Select All</button>
+		  <button type="button" class="copy-button" id="select-none-collections">Select None</button>
 		</div>
 	  </div>
 
@@ -588,6 +673,8 @@
 	let baseTheme = null;
 	let allColorPresets = [];
 	let selectedColorIds = [];
+	let allCollections = [];
+	let selectedCollectionIds = [];
 
 	// Setup resize functionality
 	const resizeHandle = document.getElementById('resize-handle');
@@ -644,7 +731,15 @@
 	}
 
 	window.onmessage = ({ data: { pluginMessage } }) => {
-	  if (pluginMessage.type === "COLOR_PRESETS_RESULT") {
+	  if (pluginMessage.type === "COLLECTIONS_RESULT") {
+		if (pluginMessage.error) {
+		  console.error("Error getting collections:", pluginMessage.error);
+		  return;
+		}
+		
+		allCollections = pluginMessage.collections || [];
+		populateCollections();
+	  } else if (pluginMessage.type === "COLOR_PRESETS_RESULT") {
 		if (pluginMessage.error) {
 		  console.error("Error getting color presets:", pluginMessage.error);
 		  return;
@@ -797,6 +892,7 @@
 			generateSpacingPresets,
 			baseTheme,
 			selectedColors: generateColorPresets ? selectedColorIds : undefined,
+			selectedCollections: selectedCollectionIds.length > 0 ? selectedCollectionIds : undefined,
 			useRem,
 			remCollections
 		  }
@@ -1101,4 +1197,107 @@
 	  updateColorSelection();
 	  updateSelectionSummary();
 	}
+
+	// Collection functionality
+	function populateCollections() {
+	  const container = document.getElementById("collections-container");
+	  container.innerHTML = "";
+
+	  if (allCollections.length === 0) {
+		container.innerHTML = '<div class="loading-collections">No collections found in your Figma file.</div>';
+		return;
+	  }
+
+	  // If no collections are selected yet, select all by default
+	  if (selectedCollectionIds.length === 0) {
+		selectedCollectionIds = allCollections.map(collection => collection.id);
+	  }
+
+	  // Create collection items
+	  allCollections.forEach(collection => {
+		const collectionItem = createCollectionItem(collection);
+		container.appendChild(collectionItem);
+	  });
+
+	  updateCollectionSelection();
+	}
+
+	function createCollectionItem(collection) {
+	  const item = document.createElement("div");
+	  item.className = "collection-item";
+	  item.dataset.collectionId = collection.id;
+
+	  const info = document.createElement("div");
+	  info.className = "collection-info";
+
+	  const name = document.createElement("div");
+	  name.className = "collection-name";
+	  name.textContent = collection.name;
+
+	  const details = document.createElement("div");
+	  details.className = "collection-details";
+	  details.textContent = `${collection.variableCount} variables, ${collection.modeCount} mode${collection.modeCount !== 1 ? 's' : ''}`;
+
+	  info.appendChild(name);
+	  info.appendChild(details);
+
+	  const checkbox = document.createElement("input");
+	  checkbox.type = "checkbox";
+	  checkbox.className = "collection-checkbox";
+	  checkbox.checked = selectedCollectionIds.includes(collection.id);
+	  checkbox.addEventListener("change", () => {
+		if (checkbox.checked) {
+		  if (!selectedCollectionIds.includes(collection.id)) {
+			selectedCollectionIds.push(collection.id);
+		  }
+		} else {
+		  selectedCollectionIds = selectedCollectionIds.filter(id => id !== collection.id);
+		}
+		updateCollectionSelection();
+	  });
+
+	  item.appendChild(info);
+	  item.appendChild(checkbox);
+
+	  // Make the whole item clickable
+	  item.addEventListener("click", (e) => {
+		if (e.target !== checkbox) {
+		  checkbox.checked = !checkbox.checked;
+		  checkbox.dispatchEvent(new Event("change"));
+		}
+	  });
+
+	  return item;
+	}
+
+	function updateCollectionSelection() {
+	  const collectionItems = document.querySelectorAll(".collection-item");
+	  collectionItems.forEach(item => {
+		const collectionId = item.dataset.collectionId;
+		const checkbox = item.querySelector(".collection-checkbox");
+		const isSelected = selectedCollectionIds.includes(collectionId);
+		
+		checkbox.checked = isSelected;
+		item.classList.toggle("selected", isSelected);
+	  });
+	}
+
+	// Collection action buttons
+	document.getElementById("select-all-collections").addEventListener("click", () => {
+	  selectedCollectionIds = allCollections.map(collection => collection.id);
+	  updateCollectionSelection();
+	});
+
+	document.getElementById("select-none-collections").addEventListener("click", () => {
+	  selectedCollectionIds = [];
+	  updateCollectionSelection();
+	});
+
+	// Load collections on page load
+	document.addEventListener("DOMContentLoaded", () => {
+	  // Request collections from the plugin
+	  parent.postMessage({ 
+		pluginMessage: { type: "GET_COLLECTIONS" } 
+	  }, "*");
+	});
   </script>
