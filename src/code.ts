@@ -74,8 +74,8 @@ figma.ui.onmessage = async (e) => {
 
 if (figma.command === "export") {
 	figma.showUI(__uiFiles__["export"], {
-		width: 500,
-		height: 500,
+		width: 600,
+		height: 600,
 		themeColors: true,
 	});
 } else if (figma.command === "css-vars") {

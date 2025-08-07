@@ -15,8 +15,8 @@
 	  color: var(--figma-color-text);
 	  margin: 0;
 	  padding: var(--spacing);
-	  min-height: 300px;
-	  min-width: 300px;
+	  min-height: 400px;
+	  min-width: 400px;
 	  position: relative;
 	  overflow: hidden;
 	}
@@ -30,8 +30,8 @@
 	  display: flex;
 	  flex-direction: column;
 	  gap: var(--spacing);
-	  max-height: calc(100% - 20px);
-	  overflow-y: auto;
+	  height: 100%;
+	  overflow: hidden;
 	}
   
 	button {
@@ -44,13 +44,15 @@
 	  background-color: var(--figma-color-bg-secondary);
 	  border: 2px solid var(--figma-color-border);
 	  color: var(--figma-color-text-secondary);
-	  height: 200px;
+	  min-height: 150px;
+	  max-height: 300px;
 	  font-family: Andale Mono, monospace;
 	  font-size: 0.9rem;
 	  overflow: auto;
 	  padding: var(--spacing);
 	  white-space: pre;
 	  resize: vertical;
+	  flex: 1;
 	}
 	textarea:focus {
 	  border-color: var(--figma-color-border-selected);
@@ -80,12 +82,14 @@
 	.button-row {
 	  display: flex;
 	  gap: var(--spacing);
+	  flex-shrink: 0;
 	}
 
 	.info-text {
 	  font-size: 0.9rem;
 	  margin-bottom: var(--spacing);
 	  color: var(--figma-color-text-secondary);
+	  flex-shrink: 0;
 	}
 
 	#download {
@@ -108,6 +112,13 @@
 	  border-radius: 4px;
 	  margin-bottom: var(--spacing);
 	  overflow: hidden;
+	  flex-shrink: 0;
+	  display: flex;
+	  flex-direction: column;
+	}
+
+	.file-container:last-child {
+	  margin-bottom: 0;
 	}
 
 	.file-header {
@@ -117,6 +128,7 @@
 	  justify-content: space-between;
 	  align-items: center;
 	  padding: calc(var(--spacing) / 2) var(--spacing);
+	  flex-shrink: 0;
 	}
 
 	.file-name {
@@ -149,6 +161,9 @@
 	  display: flex;
 	  flex-direction: column;
 	  gap: var(--spacing);
+	  flex: 1;
+	  overflow-y: auto;
+	  min-height: 0;
 	}
 
 	.empty-state {
@@ -156,6 +171,7 @@
 	  text-align: center;
 	  padding: var(--spacing);
 	  font-style: italic;
+	  flex-shrink: 0;
 	}
 	
 	.options {
@@ -166,6 +182,7 @@
 	  background-color: var(--figma-color-bg-secondary);
 	  padding: var(--spacing);
 	  border-radius: 4px;
+	  flex-shrink: 0;
 	}
 	
 	.option-row {
@@ -358,6 +375,9 @@
 	  padding: var(--spacing);
 	  overflow-y: auto;
 	  flex: 1;
+	  display: flex;
+	  flex-direction: column;
+	  min-height: 0;
 	}
 
 	.modal-footer {
@@ -377,6 +397,7 @@
 	  padding: calc(var(--spacing) / 2);
 	  background-color: var(--figma-color-bg-secondary);
 	  border-radius: 4px;
+	  flex-shrink: 0;
 	}
 
 	.step-indicator {
@@ -445,10 +466,13 @@
 
 	.step-content {
 	  display: none;
+	  flex: 1;
+	  overflow: hidden;
 	}
 
 	.step-content.active {
-	  display: block;
+	  display: flex;
+	  flex-direction: column;
 	}
 
 	.step-actions {
@@ -458,6 +482,7 @@
 	  margin-top: var(--spacing);
 	  padding-top: var(--spacing);
 	  border-top: 1px solid var(--figma-color-border);
+	  flex-shrink: 0;
 	}
 
 	.step-button {
@@ -500,6 +525,7 @@
 	  margin-bottom: var(--spacing);
 	  font-size: 0.9rem;
 	  color: var(--figma-color-text-secondary);
+	  flex-shrink: 0;
 	}
 
 	.collection-summary {
@@ -518,14 +544,26 @@
 	  border: 1px solid var(--figma-color-border);
 	}
 
+	#color-collections-container {
+	  flex: 1;
+	  overflow-y: auto;
+	  min-height: 0;
+	}
+
 	.color-grid {
 	  display: grid;
 	  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 	  gap: var(--spacing);
+	  margin-bottom: var(--spacing);
 	}
 
 	.color-collection {
 	  margin-bottom: calc(var(--spacing) * 1.5);
+	  flex-shrink: 0;
+	}
+
+	.color-collection:last-child {
+	  margin-bottom: 0;
 	}
 
 	.collection-header {
@@ -633,6 +671,7 @@
 	  margin-bottom: var(--spacing);
 	  font-size: 0.9rem;
 	  color: var(--figma-color-text-secondary);
+	  flex-shrink: 0;
 	}
 
 	.collections-section {
@@ -640,6 +679,10 @@
 	  padding: var(--spacing);
 	  border-radius: 4px;
 	  margin-bottom: var(--spacing);
+	  flex: 1;
+	  display: flex;
+	  flex-direction: column;
+	  min-height: 0;
 	}
 
 	.collections-label {
@@ -648,12 +691,14 @@
 	  font-weight: bold;
 	  margin-bottom: calc(var(--spacing) / 2);
 	  color: var(--figma-color-text);
+	  flex-shrink: 0;
 	}
 
 	.collections-container {
-	  max-height: 200px;
+	  flex: 1;
 	  overflow-y: auto;
 	  margin-bottom: calc(var(--spacing) / 2);
+	  min-height: 0;
 	}
 
 	.loading-collections {
@@ -661,6 +706,7 @@
 	  font-style: italic;
 	  text-align: center;
 	  padding: var(--spacing);
+	  flex-shrink: 0;
 	}
 
 	.collection-item {
@@ -673,6 +719,11 @@
 	  margin-bottom: calc(var(--spacing) / 2);
 	  cursor: pointer;
 	  transition: background-color 0.2s;
+	  flex-shrink: 0;
+	}
+
+	.collection-item:last-child {
+	  margin-bottom: 0;
 	}
 
 	.collection-item:hover {
@@ -707,6 +758,7 @@
 	.collections-actions {
 	  display: flex;
 	  gap: calc(var(--spacing) / 2);
+	  flex-shrink: 0;
 	}
   </style>
     <main>
