@@ -14,7 +14,8 @@ figma.ui.onmessage = async (e) => {
 	} else if (e.type === "GET_COLOR_PRESETS") {
 		// Get all available color presets for the UI
 		try {
-			const colorPresets = await getAllColorPresets();
+			const { selectedCollectionIds } = e.options || {};
+			const colorPresets = await getAllColorPresets(selectedCollectionIds);
 			figma.ui.postMessage({
 				type: "COLOR_PRESETS_RESULT",
 				colorPresets

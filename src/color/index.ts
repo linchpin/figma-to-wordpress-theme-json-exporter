@@ -32,11 +32,16 @@ function nameToLabel(name: string): string {
 /**
  * Gets all available color presets for UI display
  */
-export async function getAllColorPresets(): Promise<ColorPresetData[]> {
+export async function getAllColorPresets(selectedCollectionIds?: string[]): Promise<ColorPresetData[]> {
 	const collections = await figma.variables.getLocalVariableCollectionsAsync();
 	const colorPresets: ColorPresetData[] = [];
 
-	for (const collection of collections) {
+	// Filter collections based on selectedCollectionIds if provided
+	const filteredCollections = selectedCollectionIds && selectedCollectionIds.length > 0
+		? collections.filter(collection => selectedCollectionIds.includes(collection.id))
+		: collections;
+
+	for (const collection of filteredCollections) {
 		// Process all collections except "Primitives"
 		const collectionName = collection.name.toLowerCase();
 		if (collectionName === 'primitives') {

@@ -772,6 +772,9 @@
 				<label for="generate-color-presets">Generate color presets from color variables</label>
 				<button type="button" class="customize-button" id="customize-colors" disabled>Customize</button>
 			</div>
+			<div class="info-text" style="font-size: 0.8rem; margin-top: calc(var(--spacing) / 4);">
+				<i>Color customization will only show colors from your selected collections.</i>
+			</div>
 			<div class="option-row">
 				<input type="checkbox" id="generate-spacing-presets" />
 				<label for="generate-spacing-presets">Generate spacing presets from spacing variables</label>
@@ -851,7 +854,7 @@
   <div class="modal-overlay" id="color-modal-overlay">
 	<div class="modal">
 	  <div class="modal-header">
-		<h3 class="modal-title">Customize Color Presets</h3>
+		<h3 class="modal-title">Customize Color Presets (Selected Collections)</h3>
 		<button class="modal-close" id="close-color-modal">&times;</button>
 	  </div>
 	  <div class="modal-body">
@@ -1165,13 +1168,34 @@
 	const selectNoneButton = document.getElementById("select-none-colors");
 	const applySelectionButton = document.getElementById("apply-color-selection");
 
-	// Enable/disable customize button based on checkbox state
+	// Enable/disable customize button based on checkbox state and collection selection
+	function updateColorCustomizeButton() {
+		const isColorPresetsEnabled = colorPresetsCheckbox.checked;
+		const hasSelectedCollections = selectedCollectionIds.length > 0;
+		customizeButton.disabled = !isColorPresetsEnabled || !hasSelectedCollections;
+	}
+
 	colorPresetsCheckbox.addEventListener("change", () => {
-	  customizeButton.disabled = !colorPresetsCheckbox.checked;
-	  if (!colorPresetsCheckbox.checked) {
-		selectedColorIds = [];
-	  }
+		updateColorCustomizeButton();
+		if (!colorPresetsCheckbox.checked) {
+			selectedColorIds = [];
+		}
 	});
+
+	// Update color customize button when collections change
+	function updateCollectionSelection() {
+		const collectionItems = document.querySelectorAll(".collection-item");
+		collectionItems.forEach(item => {
+			const collectionId = item.dataset.collectionId;
+			const checkbox = item.querySelector(".collection-checkbox");
+			const isSelected = selectedCollectionIds.includes(collectionId);
+			
+			checkbox.checked = isSelected;
+			item.classList.toggle("selected", isSelected);
+		});
+		updateNextButtonState();
+		updateColorCustomizeButton();
+	}
 
 	// Handle rem options visibility
 	const useRemCheckbox = document.getElementById("use-rem");
@@ -1191,15 +1215,21 @@
 
 	// Open modal and load color presets
 	customizeButton.addEventListener("click", () => {
-	  colorModal.style.display = "flex";
-	  if (allColorPresets.length === 0) {
-		// Request color presets from the plugin
-		parent.postMessage({ 
-		  pluginMessage: { type: "GET_COLOR_PRESETS" } 
-		}, "*");
-	  } else {
-		populateColorModal();
+	  if (selectedCollectionIds.length === 0) {
+		alert("Please select at least one collection first before customizing colors.");
+		return;
 	  }
+	  
+	  colorModal.style.display = "flex";
+	  // Always request fresh color presets with current selected collections
+	  parent.postMessage({ 
+		pluginMessage: { 
+		  type: "GET_COLOR_PRESETS",
+		  options: {
+			selectedCollectionIds: selectedCollectionIds
+		  }
+		} 
+	  }, "*");
 	});
 
 	// Close modal
@@ -1238,7 +1268,7 @@
 	  container.innerHTML = "";
 
 	  if (allColorPresets.length === 0) {
-		container.innerHTML = '<div class="empty-state">No color variables found in your Figma file.</div>';
+		container.innerHTML = '<div class="empty-state">No color variables found in the selected collections. Try selecting different collections or ensure your collections contain color variables.</div>';
 		return;
 	  }
 
@@ -1371,11 +1401,11 @@
 	  const selected = selectedColorIds.length;
 	  
 	  if (total === 0) {
-		summary.textContent = "No colors available";
+		summary.textContent = "No colors available in selected collections";
 	  } else if (selected === total) {
-		summary.textContent = `All ${total} colors selected`;
+		summary.textContent = `All ${total} colors from selected collections selected`;
 	  } else {
-		summary.textContent = `${selected} of ${total} colors selected`;
+		summary.textContent = `${selected} of ${total} colors from selected collections selected`;
 	  }
 	}
 
@@ -1473,19 +1503,6 @@
 	  });
 
 	  return item;
-	}
-
-	function updateCollectionSelection() {
-	  const collectionItems = document.querySelectorAll(".collection-item");
-	  collectionItems.forEach(item => {
-		const collectionId = item.dataset.collectionId;
-		const checkbox = item.querySelector(".collection-checkbox");
-		const isSelected = selectedCollectionIds.includes(collectionId);
-		
-		checkbox.checked = isSelected;
-		item.classList.toggle("selected", isSelected);
-	  });
-	  updateNextButtonState();
 	}
 
 	// Collection action buttons
