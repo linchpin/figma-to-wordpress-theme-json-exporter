@@ -38,4 +38,5 @@ export interface ColorPresetData {
 	color: string;
 	collectionName: string;
 	resolvedColor?: string; // Actual hex/rgb value for preview
+	isWordPressSettings?: boolean; // Whether this color is from a WordPress settings collection
 } 

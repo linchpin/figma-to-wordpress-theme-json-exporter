@@ -1,10 +1,11 @@
 import { ExportOptions } from '../types';
-import { mergeCollectionData } from '../utils/index';
+import { mergeCollectionData, isWordPressSettingsCollection, extractWordPressSettingsPath, isWordPressSettingsColorCollection } from '../utils/index';
 import { processCollectionData, processCollectionModeData } from '../collection/index';
 import { processButtonStyles, clearProcessedButtonVariants } from '../button/index';
 import { getTypographyPresets } from '../typography/index';
-import { getColorPresets } from '../color/index';
+import { getColorPresetsWithValues } from '../color/index';
 import { getSpacingPresets } from '../spacing/index';
+import { sanitizeCollectionName } from '../utils/css';
 
 export async function exportToJSON(options: ExportOptions = {}) {
 	// Clear the set of processed button variants at the start of a new export
@@ -144,11 +145,18 @@ export async function exportToJSON(options: ExportOptions = {}) {
 			// process normally
 			const collectionData = await processCollectionData(collection, options);
 
-			// Determine where to merge this collection's data based on its name
-			const collectionName = collection.name.toLowerCase();
-
-			// Merge the collection data into the appropriate location in the base theme
-			mergeCollectionData(theme.settings.custom, collectionName, collectionData);
+			const name = collection.name;
+			if (isWordPressSettingsCollection(name)) {
+				// Only skip wordpress.settings.color(s) from settings.custom
+				if (!isWordPressSettingsColorCollection(name)) {
+					const settingsPath = extractWordPressSettingsPath(name) || sanitizeCollectionName(name);
+					mergeCollectionData(theme.settings.custom, settingsPath, collectionData);
+				}
+			} else {
+				// Regular collections: use sanitized name in custom
+				const collectionName = sanitizeCollectionName(name);
+				mergeCollectionData(theme.settings.custom, collectionName, collectionData);
+			}
 		}
 	}
 
@@ -163,7 +171,7 @@ export async function exportToJSON(options: ExportOptions = {}) {
 
 	// Add color presets if requested
 	if (options.generateColorPresets) {
-		const colorPresets = await getColorPresets(options.selectedColors);
+		const colorPresets = await getColorPresetsWithValues(options.selectedColors);
 		if (colorPresets.length > 0) {
 			theme.settings.color = theme.settings.color || {};
 			theme.settings.color.palette = colorPresets;

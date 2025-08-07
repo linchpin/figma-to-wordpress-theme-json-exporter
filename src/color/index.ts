@@ -1,6 +1,6 @@
 import { rgbToHex } from '../utils/color';
-import { isVariableAlias } from '../utils/index';
-import { buildCssVarReference } from '../utils/css';
+import { isVariableAlias, isWordPressSettingsCollection } from '../utils/index';
+import { buildCssVarReference, sanitizeCollectionName } from '../utils/css';
 import { ColorPresetData } from '../types';
 
 interface ColorPreset {
@@ -43,6 +43,7 @@ export async function getAllColorPresets(selectedCollectionIds?: string[]): Prom
 
 	for (const collection of filteredCollections) {
 		// Process all collections except "Primitives"
+		// Note: We include WordPress settings collections here for UI display
 		const collectionName = collection.name.toLowerCase();
 		if (collectionName === 'primitives') {
 			continue;
@@ -62,7 +63,7 @@ export async function getAllColorPresets(selectedCollectionIds?: string[]): Prom
 			// Process color variables (both direct values and aliases)
 			if (resolvedType === 'COLOR' && value !== undefined) {
 				// Always create a CSS var reference based on this variable's own name
-				const nameParts = name.split("/").map(part => part.toLowerCase());
+				const nameParts = name.split("/").map(part => sanitizeCollectionName(part));
 				const colorValue = buildCssVarReference(['color', ...nameParts]);
 				
 				// Resolve the actual color value for preview
@@ -89,7 +90,8 @@ export async function getAllColorPresets(selectedCollectionIds?: string[]): Prom
 					slug: nameToSlug(name),
 					color: colorValue,
 					collectionName: collection.name,
-					resolvedColor
+					resolvedColor,
+					isWordPressSettings: isWordPressSettingsCollection(collection.name)
 				};
 
 				colorPresets.push(preset);
@@ -114,8 +116,9 @@ export async function getColorPresets(selectedColorIds?: string[]): Promise<Colo
 
 	for (const collection of collections) {
 		// Process all collections except "Primitives"
+		// Only include WordPress settings collections in the palette
 		const collectionName = collection.name.toLowerCase();
-		if (collectionName === 'primitives') {
+		if (collectionName === 'primitives' || !isWordPressSettingsCollection(collection.name)) {
 			continue;
 		}
 
@@ -139,7 +142,7 @@ export async function getColorPresets(selectedColorIds?: string[]): Promise<Colo
 			if (resolvedType === 'COLOR' && value !== undefined) {
 				// Always create a CSS var reference based on this variable's own name
 				// This ensures we reference the semantic color name, not the primitive it might resolve to
-				const nameParts = name.split("/").map(part => part.toLowerCase());
+				const nameParts = name.split("/").map(part => sanitizeCollectionName(part));
 				const colorValue = buildCssVarReference(['color', ...nameParts]);
 				
 				// Create a preset for this color
@@ -150,6 +153,75 @@ export async function getColorPresets(selectedColorIds?: string[]): Promise<Colo
 				};
 
 				colorPresets.push(preset);
+			}
+		}
+	}
+
+	// Sort presets by name for consistent output
+	return colorPresets.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Generates color presets from Figma color variables with actual color values
+ */
+export async function getColorPresetsWithValues(selectedColorIds?: string[]): Promise<ColorPreset[]> {
+	const collections = await figma.variables.getLocalVariableCollectionsAsync();
+	const colorPresets: ColorPreset[] = [];
+
+	for (const collection of collections) {
+		// Process all collections except "Primitives"
+		// Only include WordPress settings collections in the palette
+		const collectionName = collection.name.toLowerCase();
+		if (collectionName === 'primitives' || !isWordPressSettingsCollection(collection.name)) {
+			continue;
+		}
+
+		// Use the first mode for color presets
+		const mode = collection.modes[0];
+		if (!mode) continue;
+
+		for (const variableId of collection.variableIds) {
+			// If selectedColorIds is provided, only process selected colors
+			if (selectedColorIds && !selectedColorIds.includes(variableId)) {
+				continue;
+			}
+
+			const variable = await figma.variables.getVariableByIdAsync(variableId);
+			if (!variable) continue;
+
+			const { name, resolvedType, valuesByMode } = variable;
+			const value = valuesByMode[mode.modeId];
+
+			// Process color variables (both direct values and aliases)
+			if (resolvedType === 'COLOR' && value !== undefined) {
+				// Resolve the actual color value
+				let actualColor: string | undefined;
+				if (isVariableAlias(value)) {
+					// For aliases, we'll try to resolve the referenced variable
+					const referencedVariable = await figma.variables.getVariableByIdAsync((value as any).id);
+					if (referencedVariable) {
+						const referencedValue = referencedVariable.valuesByMode[Object.keys(referencedVariable.valuesByMode)[0]];
+						if (referencedValue && !isVariableAlias(referencedValue)) {
+							const hexValue = rgbToHex(referencedValue as RGB);
+							actualColor = hexValue || undefined;
+						}
+					}
+				} else {
+					const hexValue = rgbToHex(value as RGB);
+					actualColor = hexValue || undefined;
+				}
+
+				// Only create preset if we have an actual color value
+				if (actualColor) {
+					// Create a preset for this color with actual color value
+					const preset: ColorPreset = {
+						name: nameToLabel(name),
+						slug: nameToSlug(name),
+						color: actualColor
+					};
+
+					colorPresets.push(preset);
+				}
 			}
 		}
 	}

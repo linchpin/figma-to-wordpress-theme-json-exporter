@@ -1,6 +1,40 @@
 // Helper function to check if a value appears to be a variable alias
 export function isVariableAlias(value: any): boolean {
-	return value != null && typeof value === 'object' && value.type === "VARIABLE_ALIAS";
+	return value && typeof value === 'object' && value.type === 'VARIABLE_ALIAS';
+}
+
+/**
+ * Checks if a collection name matches the WordPress settings pattern
+ * @param collectionName The name of the collection
+ * @returns true if the collection should be treated as WordPress settings
+ */
+export function isWordPressSettingsCollection(collectionName: string): boolean {
+	const pattern = /^wordpress\.settings\./i;
+	return pattern.test(collectionName);
+}
+
+/**
+ * Extracts the WordPress settings path from a collection name
+ * @param collectionName The name of the collection (e.g., "wordpress.settings.color")
+ * @returns The settings path (e.g., "color") or null if not a WordPress settings collection
+ */
+export function extractWordPressSettingsPath(collectionName: string): string | null {
+	if (!isWordPressSettingsCollection(collectionName)) {
+		return null;
+	}
+	
+	// Remove "wordpress.settings." prefix and return the rest
+	return collectionName.replace(/^wordpress\.settings\./i, '');
+}
+
+/**
+ * Checks if a WordPress settings collection is the "color" settings group
+ * Matches: wordpress.settings.color, wordpress.settings.colors, and nested variants
+ */
+export function isWordPressSettingsColorCollection(collectionName: string): boolean {
+	if (!isWordPressSettingsCollection(collectionName)) return false;
+	const rest = collectionName.replace(/^wordpress\.settings\./i, '');
+	return /^colors?(\.|$)/i.test(rest);
 }
 
 // Helper function to merge collection data into the base theme at the appropriate location

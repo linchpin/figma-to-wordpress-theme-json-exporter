@@ -760,6 +760,28 @@
 	  gap: calc(var(--spacing) / 2);
 	  flex-shrink: 0;
 	}
+
+	.wordpress-settings {
+	  border-left: 3px solid var(--figma-color-bg-brand);
+	}
+
+	.wordpress-settings-badge {
+	  background-color: var(--figma-color-bg-brand);
+	  color: var(--figma-color-text-onbrand);
+	  padding: 2px 6px;
+	  border-radius: 10px;
+	  font-size: 0.7rem;
+	  font-weight: bold;
+	  margin-left: calc(var(--spacing) / 2);
+	}
+
+	.wordpress-settings-color {
+	  border-left: 3px solid var(--figma-color-bg-brand);
+	}
+
+	.wordpress-settings-color .color-slug {
+	  color: var(--figma-color-text-secondary);
+	}
   </style>
     <main>
 	<!-- Step Navigation -->
@@ -782,6 +804,8 @@
 	<div class="step-content active" id="step-1">
 		<div class="info-text">
 			Select which collections you want to include in your WordPress theme export.
+			<br><br>
+			<strong>WordPress Settings Collections:</strong> Collections named "wordpress.settings.*" will be included in the WordPress color palette for the block editor.
 		</div>
 
 		<div class="collections-section">
@@ -1379,6 +1403,11 @@
 	  item.className = "color-item";
 	  item.dataset.colorId = preset.id;
 
+	  // Add WordPress settings indicator
+	  if (preset.isWordPressSettings) {
+		item.classList.add("wordpress-settings-color");
+	  }
+
 	  const preview = document.createElement("div");
 	  preview.className = "color-preview";
 	  if (preset.resolvedColor) {
@@ -1451,13 +1480,17 @@
 	  const summary = document.getElementById("selection-summary");
 	  const total = allColorPresets.length;
 	  const selected = selectedColorIds.length;
+	  const wpSettingsColors = allColorPresets.filter(preset => preset.isWordPressSettings).length;
+	  const regularColors = total - wpSettingsColors;
 	  
 	  if (total === 0) {
 		summary.textContent = "No colors available in selected collections";
-	  } else if (selected === total) {
-		summary.textContent = `All ${total} colors from selected collections selected`;
 	  } else {
-		summary.textContent = `${selected} of ${total} colors from selected collections selected`;
+		let summaryText = `${selected} of ${total} colors selected`;
+		if (wpSettingsColors > 0) {
+		  summaryText += ` (${wpSettingsColors} WordPress settings colors will be in the color palette)`;
+		}
+		summary.textContent = summaryText;
 	  }
 	}
 
@@ -1514,6 +1547,12 @@
 	  item.className = "collection-item";
 	  item.dataset.collectionId = collection.id;
 
+	  // Check if this is a WordPress settings collection
+	  const isWordPressSettings = /^wordpress\.settings\./i.test(collection.name);
+	  if (isWordPressSettings) {
+		item.classList.add("wordpress-settings");
+	  }
+
 	  const info = document.createElement("div");
 	  info.className = "collection-info";
 
@@ -1524,6 +1563,9 @@
 	  const details = document.createElement("div");
 	  details.className = "collection-details";
 	  details.textContent = `${collection.variableCount} variables, ${collection.modeCount} mode${collection.modeCount !== 1 ? 's' : ''}`;
+	  if (isWordPressSettings) {
+		details.innerHTML += ' <span class="wordpress-settings-badge">WordPress Settings</span>';
+	  }
 
 	  info.appendChild(name);
 	  info.appendChild(details);

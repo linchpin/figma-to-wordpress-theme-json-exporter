@@ -1,6 +1,6 @@
 import { VariableCollection, VariableCollectionMode, ExportOptions } from '../types';
 import { isVariableAlias, formatValueWithUnits } from '../utils/index';
-import { buildCssVarReference } from '../utils/css';
+import { buildCssVarReference, sanitizeCollectionName } from '../utils/css';
 import { rgbToHex } from '../utils/color';
 
 // New helper function to process a specific mode of a collection
@@ -18,8 +18,8 @@ export async function processCollectionModeData(collection: VariableCollection, 
 		if (value !== undefined && ["COLOR", "FLOAT"].includes(resolvedType)) {
 			// Build the nested structure in our temporary object
 			let obj = variablesData;
-			// Convert the name parts to lowercase
-			const nameParts = name.split("/").map(part => part.toLowerCase());
+			// Convert the name parts to sanitized format
+			const nameParts = name.split("/").map(part => sanitizeCollectionName(part));
 
 			// Navigate to the appropriate nesting level
 			for (let i = 0; i < nameParts.length - 1; i++) {
@@ -35,9 +35,9 @@ export async function processCollectionModeData(collection: VariableCollection, 
 				const currentVar = await figma.variables.getVariableByIdAsync((value as any).id);
 
 				if (currentVar) {
-					// Convert the reference to a CSS custom property reference with lowercase parts
+					// Convert the reference to a CSS custom property reference with sanitized parts
 					try {
-						const referenceParts = currentVar.name.split("/").map(part => part.toLowerCase());
+						const referenceParts = currentVar.name.split("/").map(part => sanitizeCollectionName(part));
 
 						obj[leafName] = buildCssVarReference(referenceParts);
 					} catch( e ) {
