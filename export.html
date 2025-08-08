@@ -701,6 +701,21 @@
 	  min-height: 0;
 	}
 
+  .collections-group {
+    margin-bottom: var(--spacing);
+  }
+
+  .collections-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .collections-group-title {
+    font-weight: 600;
+    color: var(--figma-color-text);
+    margin: 0 0 calc(var(--spacing) / 2) 0;
+    font-size: 0.95rem;
+  }
+
 	.loading-collections {
 	  color: var(--figma-color-text-secondary);
 	  font-style: italic;
@@ -838,53 +853,68 @@
 			Configure what you want to export from your selected collections.
 		</div>
 
-		<div class="options">
-			<div class="option-row">
-				<input type="checkbox" id="generate-typography" />
-				<label for="generate-typography">Generate typography presets from text styles <em>(10up tooling)</em></label>
-			</div>
-			<div class="option-row">
-				<input type="checkbox" id="generate-color-presets" />
-				<label for="generate-color-presets">Generate color presets from color variables</label>
-				<button type="button" class="customize-button" id="customize-colors" disabled>Customize</button>
-			</div>
-			<div class="info-text" style="font-size: 0.8rem; margin-top: calc(var(--spacing) / 4);">
-				<i>Color customization will only show colors from your selected collections.</i>
-			</div>
-			<div class="option-row">
-				<input type="checkbox" id="generate-spacing-presets" />
-				<label for="generate-spacing-presets">Generate spacing presets from spacing variables</label>
-			</div>
+        <div class="options">
+            <!-- Color options group -->
+            <div class="options-group" id="color-options">
+                <h4 class="collections-group-title">Color options</h4>
+                <!-- Elements color export mode -->
+                <div class="option-row">
+                    <label for="elements-color-mode" style="margin-right: 8px;">Elements color export:</label>
+                    <select id="elements-color-mode">
+                        <option value="value">Use color values</option>
+                        <option value="preset" selected>Use palette preset references</option>
+                    </select>
+                </div>
+                <div class="option-row" id="color-presets-row">
+                    <input type="checkbox" id="generate-color-presets" />
+                    <label for="generate-color-presets">Generate color presets from color variables</label>
+                    <button type="button" class="customize-button" id="customize-colors" disabled>Customize</button>
+                </div>
+                <div class="info-text" id="color-presets-note" style="font-size: 0.8rem; margin-top: calc(var(--spacing) / 4); display: none;">
+                    <i>Using <code>wp.settings.colors</code> collection. Color presets will be derived from that collection.</i>
+                </div>
+                <div class="info-text" style="font-size: 0.8rem; margin-top: calc(var(--spacing) / 4);">
+                    <i>Color customization will only show colors from your selected collections.</i>
+                </div>
+            </div>
 
-			<!-- Elements color export mode -->
-			<div class="option-row">
-				<label for="elements-color-mode" style="margin-right: 8px;">Elements color export:</label>
-				<select id="elements-color-mode">
-					<option value="value">Use color values</option>
-					<option value="preset" selected>Use palette preset references</option>
-				</select>
-			</div>
+            <!-- Spacing & units group -->
+            <div class="options-group" id="spacing-units-options">
+                <h4 class="collections-group-title">Spacing & units</h4>
+                <div class="option-row">
+                    <input type="checkbox" id="generate-spacing-presets" />
+                    <label for="generate-spacing-presets">Generate spacing presets from spacing variables</label>
+                </div>
+                <div class="option-row">
+                    <input type="checkbox" id="use-rem" />
+                    <label for="use-rem">Use rem units instead of px</label>
+                </div>
+                <div class="rem-collections" id="rem-collections" style="display: none; margin-left: 20px; margin-top: 8px;">
+                    <div class="option-row">
+                        <input type="checkbox" id="rem-font" />
+                        <label for="rem-font">Apply to Font/Typography variables</label>
+                    </div>
+                    <div class="option-row">
+                        <input type="checkbox" id="rem-primitives" />
+                        <label for="rem-primitives">Apply to Primitives collection</label>
+                    </div>
+                    <div class="option-row">
+                        <input type="checkbox" id="rem-spacing" />
+                        <label for="rem-spacing">Apply to Spacing variables</label>
+                    </div>
+                </div>
+            </div>
 
-			<div class="option-row">
-				<input type="checkbox" id="use-rem" />
-				<label for="use-rem">Use rem units instead of px</label>
-			</div>
-			<div class="rem-collections" id="rem-collections" style="display: none; margin-left: 20px; margin-top: 8px;">
-				<div class="option-row">
-					<input type="checkbox" id="rem-font" />
-					<label for="rem-font">Apply to Font/Typography variables</label>
-				</div>
-				<div class="option-row">
-					<input type="checkbox" id="rem-primitives" />
-					<label for="rem-primitives">Apply to Primitives collection</label>
-				</div>
-				<div class="option-row">
-					<input type="checkbox" id="rem-spacing" />
-					<label for="rem-spacing">Apply to Spacing variables</label>
-				</div>
-			</div>
+            <!-- Typography group -->
+            <div class="options-group" id="typography-options">
+                <h4 class="collections-group-title">Typography</h4>
+                <div class="option-row">
+                    <input type="checkbox" id="generate-typography" />
+                    <label for="generate-typography">Generate typography presets from text styles <em>(10up tooling)</em></label>
+                </div>
+            </div>
 
-			<div class="file-upload">
+            <div class="file-upload">
 				<label class="file-upload-label">Base theme.json</label>
 				<div class="file-upload-row">
 					<input type="file" id="base-theme" accept=".json" style="display: none;" />
@@ -1162,12 +1192,29 @@
 
 	document.getElementById("export").addEventListener("click", () => {
 	  // Get the state of the checkboxes
-	  const generateTypography = document.getElementById("generate-typography").checked;
-	  const generateColorPresets = document.getElementById("generate-color-presets").checked;
+      const generateTypography = document.getElementById("generate-typography").checked;
+      const generateColorPresetsCheckbox = document.getElementById("generate-color-presets");
+      const generateColorPresets = generateColorPresetsCheckbox.checked;
 	  const generateSpacingPresets = document.getElementById("generate-spacing-presets").checked;
 	  const useRem = document.getElementById("use-rem").checked;
 	  const elementsColorModeSelect = document.getElementById("elements-color-mode");
 	  const elementsColorExportMode = elementsColorModeSelect ? elementsColorModeSelect.value : "value";
+
+      // Determine if wp.settings.colors is selected
+      const wpSettingsColorsSelected = allCollections
+        .filter(c => /^wp\.settings\.colors?/i.test(c.name))
+        .some(c => selectedCollectionIds.includes(c.id));
+
+      // Auto-enable color presets generation if wp.settings.colors is selected
+      // or if elements are referencing palette presets
+      const shouldGenerateColorPresets = generateColorPresets || wpSettingsColorsSelected || elementsColorExportMode === 'preset';
+
+      // If presets are auto-enabled due to wp.settings.colors or preset references,
+      // but the selection UI is hidden, pass undefined to export all relevant colors
+      const colorPresetsRow = document.getElementById('color-presets-row');
+      const selectedColorsForExport = shouldGenerateColorPresets
+        ? (colorPresetsRow && colorPresetsRow.style.display === 'none' ? undefined : (selectedColorIds.length ? selectedColorIds : undefined))
+        : undefined;
 	  
 	  // Get rem collection options if rem is enabled
 	  const remCollections = useRem ? {
@@ -1182,10 +1229,10 @@
 		  type: "EXPORT",
 		  options: {
 			generateTypography,
-			generateColorPresets,
+            generateColorPresets: shouldGenerateColorPresets,
 			generateSpacingPresets,
 			baseTheme,
-			selectedColors: generateColorPresets ? selectedColorIds : undefined,
+            selectedColors: selectedColorsForExport,
 			selectedCollections: selectedCollectionIds.length > 0 ? selectedCollectionIds : undefined,
 			useRem,
 			remCollections,
@@ -1260,7 +1307,25 @@
 	function updateColorCustomizeButton() {
 		const isColorPresetsEnabled = colorPresetsCheckbox.checked;
 		const hasSelectedCollections = selectedCollectionIds.length > 0;
-		customizeButton.disabled = !isColorPresetsEnabled || !hasSelectedCollections;
+    customizeButton.disabled = !isColorPresetsEnabled || !hasSelectedCollections;
+
+    // If wp.settings.colors is selected, we can hide the explicit toggle and show info
+    const wpSettingsColorsSelected = allCollections
+      .filter(c => /^wp\.settings\.colors?/i.test(c.name))
+      .some(c => selectedCollectionIds.includes(c.id));
+
+    const colorPresetsRow = document.getElementById('color-presets-row');
+    const colorPresetsNote = document.getElementById('color-presets-note');
+    if (wpSettingsColorsSelected) {
+      // Hide the presets toggle and show note
+      colorPresetsRow.style.display = 'none';
+      colorPresetsNote.style.display = 'block';
+      // When hidden, implicitly treat as enabled for export fallback logic
+      colorPresetsCheckbox.checked = true;
+    } else {
+      colorPresetsRow.style.display = 'flex';
+      colorPresetsNote.style.display = 'none';
+    }
 	}
 
 	colorPresetsCheckbox.addEventListener("change", () => {
@@ -1539,19 +1604,40 @@
 		return;
 	  }
 
-	  // If no collections are selected yet, select all by default
-	  if (selectedCollectionIds.length === 0) {
-		selectedCollectionIds = allCollections.map(collection => collection.id);
-	  }
+    // Group collections by wp.* prefix
+    const wpCollections = allCollections.filter(c => /^wp\./i.test(c.name));
+    const otherCollections = allCollections.filter(c => !/^wp\./i.test(c.name));
 
-	  // Create collection items
-	  allCollections.forEach(collection => {
-		const collectionItem = createCollectionItem(collection);
-		container.appendChild(collectionItem);
-	  });
+    // If no collections are selected yet, default-select ONLY wp.* collections
+    if (selectedCollectionIds.length === 0) {
+      selectedCollectionIds = wpCollections.map(c => c.id);
+    }
 
-	  updateCollectionSelection();
-	  updateNextButtonState();
+    const groups = [
+      { title: 'WordPress collections (wp.*)', items: wpCollections },
+      { title: 'Other collections', items: otherCollections }
+    ];
+
+    groups.forEach(group => {
+      if (group.items.length === 0) return;
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'collections-group';
+
+      const title = document.createElement('h4');
+      title.className = 'collections-group-title';
+      title.textContent = group.title;
+      groupDiv.appendChild(title);
+
+      group.items.forEach(collection => {
+        const collectionItem = createCollectionItem(collection);
+        groupDiv.appendChild(collectionItem);
+      });
+
+      container.appendChild(groupDiv);
+    });
+
+    updateCollectionSelection();
+    updateNextButtonState();
 	}
 
 	function createCollectionItem(collection) {
@@ -1612,15 +1698,16 @@
 	}
 
 	// Collection action buttons
-	document.getElementById("select-all-collections").addEventListener("click", () => {
-	  selectedCollectionIds = allCollections.map(collection => collection.id);
-	  updateCollectionSelection();
-	});
+  document.getElementById("select-all-collections").addEventListener("click", () => {
+    selectedCollectionIds = allCollections.map(collection => collection.id);
+    updateCollectionSelection();
+  });
 
-	document.getElementById("select-none-collections").addEventListener("click", () => {
-	  selectedCollectionIds = [];
-	  updateCollectionSelection();
-	});
+  document.getElementById("select-none-collections").addEventListener("click", () => {
+    // Deselect all
+    selectedCollectionIds = [];
+    updateCollectionSelection();
+  });
 
 	// Step navigation functionality
 	function showStep(stepNumber) {
