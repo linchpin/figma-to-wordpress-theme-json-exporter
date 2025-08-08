@@ -1,5 +1,12 @@
 import { ExportOptions } from '../types';
-import { mergeCollectionData, isWordPressSettingsCollection, extractWordPressSettingsPath, isWordPressSettingsColorCollection } from '../utils/index';
+import {
+	mergeCollectionData,
+	extractWordPressSettingsPath,
+	extractWordPressElementsPath,
+	isWordPressSettingsCollection,
+	isWordPressSettingsColorCollection,
+	isWordPressElementsCollection,
+} from '../utils/index';
 import { processCollectionData, processCollectionModeData } from '../collection/index';
 import { processButtonStyles, clearProcessedButtonVariants } from '../button/index';
 import { getTypographyPresets } from '../typography/index';
@@ -32,11 +39,12 @@ export async function exportToJSON(options: ExportOptions = {}) {
 		}
 	};
 
-	// Ensure the theme has the required structure
-	theme.settings = theme.settings || {};
-	theme.settings.custom = theme.settings.custom || {};
+  // Ensure the theme has the required structure
+  theme.settings = theme.settings || {};
+  theme.settings.custom = theme.settings.custom || {};
+  theme.settings.color = theme.settings.color || {};
 
-	// Array to store all files we need to output
+  // Array to store all files we need to output
 	const allFiles = [{
 		fileName: "theme.json",
 		body: theme
@@ -145,14 +153,29 @@ export async function exportToJSON(options: ExportOptions = {}) {
 			// process normally
 			const collectionData = await processCollectionData(collection, options);
 
-			const name = collection.name;
-			if (isWordPressSettingsCollection(name)) {
+      const name = collection.name;
+      if (isWordPressSettingsCollection(name)) {
 				// Only skip wordpress.settings.color(s) from settings.custom
 				if (!isWordPressSettingsColorCollection(name)) {
 					const settingsPath = extractWordPressSettingsPath(name) || sanitizeCollectionName(name);
 					mergeCollectionData(theme.settings.custom, settingsPath, collectionData);
 				}
-			} else {
+      } else if (isWordPressElementsCollection(name)) {
+        // Map wp.elements.* collections into theme.styles.elements
+        const elementsPath = extractWordPressElementsPath(name); // e.g., "button"
+        // Lazily initialize styles and elements only when needed
+        theme.styles = theme.styles || {} as any;
+        (theme.styles as any).elements = (theme.styles as any).elements || {};
+        const target = (theme.styles as any).elements as Record<string, any>;
+        if (elementsPath) {
+          // Nest under the element key
+          target[elementsPath] = target[elementsPath] || {};
+          mergeCollectionData(target[elementsPath], "", collectionData);
+        } else {
+          // Root elements collection → merge directly into styles.elements
+          mergeCollectionData(target, "", collectionData);
+        }
+      } else {
 				// Regular collections: use sanitized name in custom
 				const collectionName = sanitizeCollectionName(name);
 				mergeCollectionData(theme.settings.custom, collectionName, collectionData);
@@ -175,6 +198,18 @@ export async function exportToJSON(options: ExportOptions = {}) {
 		if (colorPresets.length > 0) {
 			theme.settings.color = theme.settings.color || {};
 			theme.settings.color.palette = colorPresets;
+		}
+	}
+
+	// Ensure palette exists when elements are referencing preset colors
+	if (options.elementsColorExportMode === 'preset') {
+		const hasPalette = !!(theme.settings.color && Array.isArray((theme.settings.color as any).palette) && (theme.settings.color as any).palette.length > 0);
+		if (!hasPalette) {
+			const colorPresets = await getColorPresetsWithValues(options.selectedColors);
+			if (colorPresets.length > 0) {
+				theme.settings.color = theme.settings.color || {};
+				(theme.settings.color as any).palette = colorPresets;
+			}
 		}
 	}
 

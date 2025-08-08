@@ -1,5 +1,5 @@
 import { VariableCollection, VariableCollectionMode, ExportOptions } from '../types';
-import { isVariableAlias, formatValueWithUnits } from '../utils/index';
+import { isVariableAlias, formatValueWithUnits, isWordPressElementsCollection, resolveColorValueToHex } from '../utils/index';
 import { buildCssVarReference, sanitizeCollectionName } from '../utils/css';
 import { rgbToHex } from '../utils/color';
 
@@ -35,13 +35,25 @@ export async function processCollectionModeData(collection: VariableCollection, 
 				const currentVar = await figma.variables.getVariableByIdAsync((value as any).id);
 
 				if (currentVar) {
-					// Convert the reference to a CSS custom property reference with sanitized parts
 					try {
-						const referenceParts = currentVar.name.split("/").map(part => sanitizeCollectionName(part));
-
-						obj[leafName] = buildCssVarReference(referenceParts);
-					} catch( e ) {
-						console.log( 'Error building CSS var reference:', e );
+						// Special handling for color aliases within wp.elements.* collections
+						if (resolvedType === "COLOR" && isWordPressElementsCollection(collection.name)) {
+							const lastPart = currentVar.name.split("/").map(part => sanitizeCollectionName(part)).pop() || "";
+							if ((options?.elementsColorExportMode || "value") === "preset") {
+								// Map to WordPress preset color reference: var:preset|color|<slug>
+								obj[leafName] = `var:preset|color|${lastPart}`;
+							} else {
+								// Resolve to actual color value (hex)
+								const resolved = await resolveColorValueToHex(value, mode.modeId);
+								obj[leafName] = resolved !== null ? resolved : null;
+							}
+						} else {
+							// Default behavior: reference as CSS var
+							const referenceParts = currentVar.name.split("/").map(part => sanitizeCollectionName(part));
+							obj[leafName] = buildCssVarReference(referenceParts);
+						}
+					} catch (e) {
+						console.log('Error handling variable alias:', e);
 					}
 
 				}

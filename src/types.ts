@@ -15,6 +15,13 @@ export interface ExportOptions {
 		spacing?: boolean;
 		[key: string]: boolean | undefined;
 	}; // Which collections to apply rem conversion to
+
+	/**
+	 * Controls how COLOR aliases inside `wp.elements.*` collections are exported.
+	 * - "value" → export resolved literal color values (e.g., "#5344F4").
+	 * - "preset" → export WordPress palette references (e.g., "var:preset|color|primary").
+	 */
+	elementsColorExportMode?: "value" | "preset";
 }
 
 // TypeScript interface for Figma Variable Collection Mode

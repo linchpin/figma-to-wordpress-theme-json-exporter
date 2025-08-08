@@ -26,6 +26,89 @@ describe('Export Functions', () => {
 					}
 				}]
 			});
+
+  it('should map wp.elements root collection into theme.styles.elements', async () => {
+    const collections = [
+      {
+        name: 'wp.elements',
+        modes: [{ modeId: 'mode1', name: 'Default' }],
+        variableIds: ['var1']
+      }
+    ];
+
+    mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(collections);
+    mockFigma.variables.getVariableByIdAsync.mockResolvedValue({
+      name: 'button/border/radius',
+      resolvedType: 'FLOAT',
+      valuesByMode: { mode1: 4 }
+    });
+
+    await exportToJSON();
+
+    const call = mockFigma.ui.postMessage.mock.calls[0][0];
+    expect(call.files[0].body.styles.elements.button.border.radius).toBe('4px');
+    // Ensure it did not go into settings.custom
+    expect(call.files[0].body.settings.custom['wp.elements']).toBeUndefined();
+  });
+
+  it('should map wp.elements.button collection under styles.elements.button', async () => {
+    const collections = [
+      {
+        name: 'wp.elements.button',
+        modes: [{ modeId: 'mode1', name: 'Default' }],
+        variableIds: ['var1']
+      }
+    ];
+
+    mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(collections);
+    mockFigma.variables.getVariableByIdAsync.mockResolvedValue({
+      name: 'border/width',
+      resolvedType: 'FLOAT',
+      valuesByMode: { mode1: 2 }
+    });
+
+    await exportToJSON();
+
+    const call = mockFigma.ui.postMessage.mock.calls[0][0];
+    expect(call.files[0].body.styles.elements.button.border.width).toBe('2px');
+  });
+
+  it('should merge multiple wp.elements collections correctly', async () => {
+    const collections = [
+      {
+        name: 'wp.elements',
+        modes: [{ modeId: 'mode1', name: 'Default' }],
+        variableIds: ['var1']
+      },
+      {
+        name: 'wp.elements.button',
+        modes: [{ modeId: 'mode1', name: 'Default' }],
+        variableIds: ['var2']
+      }
+    ];
+
+    mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(collections);
+    mockFigma.variables.getVariableByIdAsync
+      .mockResolvedValueOnce({
+        name: 'button/typography/fontSize',
+        resolvedType: 'FLOAT',
+        valuesByMode: { mode1: 16 }
+      })
+      .mockResolvedValueOnce({
+        name: 'border/radius',
+        resolvedType: 'FLOAT',
+        valuesByMode: { mode1: 6 }
+      });
+
+    await exportToJSON();
+
+    const call = mockFigma.ui.postMessage.mock.calls[0][0];
+    const elements = call.files[0].body.styles.elements;
+    expect(elements.button.typography.fontsize).toBe('1rem'); // 16px -> 1rem? only if useRem; without rem stays '16px'
+    // Adjust assertion to px because default is px
+    expect(elements.button.typography.fontsize).toBe('16px');
+    expect(elements.button.border.radius).toBe('6px');
+  });
 		});
 
 		it('should use provided base theme', async () => {

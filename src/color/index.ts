@@ -1,5 +1,5 @@
 import { rgbToHex } from '../utils/color';
-import { isVariableAlias, isWordPressSettingsCollection } from '../utils/index';
+import { isVariableAlias, isWordPressSettingsCollection, resolveColorValueToHex } from '../utils/index';
 import { buildCssVarReference, sanitizeCollectionName } from '../utils/css';
 import { ColorPresetData } from '../types';
 
@@ -194,32 +194,13 @@ export async function getColorPresetsWithValues(selectedColorIds?: string[]): Pr
 
 			// Process color variables (both direct values and aliases)
 			if (resolvedType === 'COLOR' && value !== undefined) {
-				// Resolve the actual color value
-				let actualColor: string | undefined;
-				if (isVariableAlias(value)) {
-					// For aliases, we'll try to resolve the referenced variable
-					const referencedVariable = await figma.variables.getVariableByIdAsync((value as any).id);
-					if (referencedVariable) {
-						const referencedValue = referencedVariable.valuesByMode[Object.keys(referencedVariable.valuesByMode)[0]];
-						if (referencedValue && !isVariableAlias(referencedValue)) {
-							const hexValue = rgbToHex(referencedValue as RGB);
-							actualColor = hexValue || undefined;
-						}
-					}
-				} else {
-					const hexValue = rgbToHex(value as RGB);
-					actualColor = hexValue || undefined;
-				}
-
-				// Only create preset if we have an actual color value
+				const actualColor = await resolveColorValueToHex(value, mode.modeId);
 				if (actualColor) {
-					// Create a preset for this color with actual color value
 					const preset: ColorPreset = {
 						name: nameToLabel(name),
 						slug: nameToSlug(name),
 						color: actualColor
 					};
-
 					colorPresets.push(preset);
 				}
 			}

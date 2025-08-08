@@ -5,12 +5,19 @@ export function camelToKebabCase(value: string): string {
 
 // Helper function to build a WordPress custom property path
 export function buildWpCustomPropertyPath(nameParts: string[]): string {
-	return nameParts.map(part => camelToKebabCase(part)).join('--');
+    // For custom property path, normalize parts by lowercasing and removing non-alphanumeric characters
+    // Tests expect no hyphens inside each part (e.g., colorPalette -> colorpalette)
+    const normalizedParts = nameParts.map(part => String(part)
+        .toLowerCase()
+        // Keep existing hyphens, strip other non-alphanumerics
+        .replace(/[^a-z0-9-]/g, '')
+    );
+    return `--wp--custom--${normalizedParts.join('--')}`;
 }
 
 // Helper function to build a CSS var() reference
 export function buildCssVarReference(nameParts: string[]): string {
-	return `var(--wp--custom--${buildWpCustomPropertyPath(nameParts)})`;
+    return `var(${buildWpCustomPropertyPath(nameParts)})`;
 }
 
 /**

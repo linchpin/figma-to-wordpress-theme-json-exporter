@@ -9,13 +9,13 @@ export function isVariableAlias(value: any): boolean {
  * @returns true if the collection should be treated as WordPress settings
  */
 export function isWordPressSettingsCollection(collectionName: string): boolean {
-	const pattern = /^wordpress\.settings\./i;
+	const pattern = /^wp\.settings\./i;
 	return pattern.test(collectionName);
 }
 
 /**
  * Extracts the WordPress settings path from a collection name
- * @param collectionName The name of the collection (e.g., "wordpress.settings.color")
+ * @param collectionName The name of the collection (e.g., "wp.settings.color")
  * @returns The settings path (e.g., "color") or null if not a WordPress settings collection
  */
 export function extractWordPressSettingsPath(collectionName: string): string | null {
@@ -24,17 +24,38 @@ export function extractWordPressSettingsPath(collectionName: string): string | n
 	}
 	
 	// Remove "wordpress.settings." prefix and return the rest
-	return collectionName.replace(/^wordpress\.settings\./i, '');
+	return collectionName.replace(/^wp\.settings\./i, '');
 }
 
 /**
  * Checks if a WordPress settings collection is the "color" settings group
- * Matches: wordpress.settings.color, wordpress.settings.colors, and nested variants
+ * Matches: wp.settings.color, wp.settings.colors, and nested variants
  */
 export function isWordPressSettingsColorCollection(collectionName: string): boolean {
 	if (!isWordPressSettingsCollection(collectionName)) return false;
-	const rest = collectionName.replace(/^wordpress\.settings\./i, '');
+	const rest = collectionName.replace(/^wp\.settings\./i, '');
 	return /^colors?(\.|$)/i.test(rest);
+}
+
+/**
+ * Checks if a collection name matches the WordPress elements pattern
+ * Matches: wp.elements, wp.elements.button, etc.
+ */
+export function isWordPressElementsCollection(collectionName: string): boolean {
+  const pattern = /^wp\.elements(\.|$)/i;
+  return pattern.test(collectionName);
+}
+
+/**
+ * Extracts the WordPress elements path from a collection name
+ * @param collectionName The name of the collection (e.g., "wp.elements.button")
+ * @returns The elements path (e.g., "button") or empty string if root ("wp.elements")
+ */
+export function extractWordPressElementsPath(collectionName: string): string {
+  if (!isWordPressElementsCollection(collectionName)) {
+    return "";
+  }
+  return collectionName.replace(/^wp\.elements\.?/i, "");
 }
 
 // Helper function to merge collection data into the base theme at the appropriate location
@@ -168,3 +189,35 @@ export function roundToMax3Decimals(value: number): number | string {
 export function capitalizeFirstLetter(str: string): string {
 	return str.charAt(0).toUpperCase() + str.slice(1);
 } 
+
+// Color utils
+import { rgbToHex } from './color';
+
+/**
+ * Resolves a Figma color value or alias chain to a hex (or rgba) string.
+ * Safely follows VARIABLE_ALIAS references across modes until a concrete RGB value is found.
+ */
+export async function resolveColorValueToHex(value: any, preferredModeId?: string): Promise<string | null> {
+    try {
+        let currentValue: any = value;
+        let guard = 0;
+        while (isVariableAlias(currentValue) && guard < 10) {
+            guard++;
+            const varId = (currentValue as any).id;
+            if (!varId) break;
+            const variable = await figma.variables.getVariableByIdAsync(varId);
+            if (!variable) break;
+            // Try preferred mode first, then fall back to first available
+            const modeIds = Object.keys(variable.valuesByMode || {});
+            const modeId = preferredModeId && variable.valuesByMode[preferredModeId] !== undefined
+                ? preferredModeId
+                : (modeIds.length > 0 ? modeIds[0] : undefined);
+            if (!modeId) break;
+            currentValue = variable.valuesByMode[modeId];
+        }
+        return rgbToHex(currentValue);
+    } catch (e) {
+        console.log('resolveColorValueToHex error:', e);
+        return null;
+    }
+}

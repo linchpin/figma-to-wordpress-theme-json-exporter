@@ -856,6 +856,15 @@
 				<label for="generate-spacing-presets">Generate spacing presets from spacing variables</label>
 			</div>
 
+			<!-- Elements color export mode -->
+			<div class="option-row">
+				<label for="elements-color-mode" style="margin-right: 8px;">Elements color export:</label>
+				<select id="elements-color-mode">
+					<option value="value">Use color values</option>
+					<option value="preset" selected>Use palette preset references</option>
+				</select>
+			</div>
+
 			<div class="option-row">
 				<input type="checkbox" id="use-rem" />
 				<label for="use-rem">Use rem units instead of px</label>
@@ -1157,6 +1166,8 @@
 	  const generateColorPresets = document.getElementById("generate-color-presets").checked;
 	  const generateSpacingPresets = document.getElementById("generate-spacing-presets").checked;
 	  const useRem = document.getElementById("use-rem").checked;
+	  const elementsColorModeSelect = document.getElementById("elements-color-mode");
+	  const elementsColorExportMode = elementsColorModeSelect ? elementsColorModeSelect.value : "value";
 	  
 	  // Get rem collection options if rem is enabled
 	  const remCollections = useRem ? {
@@ -1177,7 +1188,8 @@
 			selectedColors: generateColorPresets ? selectedColorIds : undefined,
 			selectedCollections: selectedCollectionIds.length > 0 ? selectedCollectionIds : undefined,
 			useRem,
-			remCollections
+			remCollections,
+			elementsColorExportMode
 		  }
 		} 
 	  }, "*");
@@ -1548,7 +1560,7 @@
 	  item.dataset.collectionId = collection.id;
 
 	  // Check if this is a WordPress settings collection
-	  const isWordPressSettings = /^wordpress\.settings\./i.test(collection.name);
+	  const isWordPressSettings = /^wp\.settings\./i.test(collection.name);
 	  if (isWordPressSettings) {
 		item.classList.add("wordpress-settings");
 	  }
