@@ -1,4 +1,4 @@
-import { ExportOptions } from '../types';
+import { ExportOptions } from "../types";
 import {
 	mergeCollectionData,
 	extractWordPressSettingsPath,
@@ -6,13 +6,20 @@ import {
 	isWordPressSettingsCollection,
 	isWordPressSettingsColorCollection,
 	isWordPressElementsCollection,
-} from '../utils/index';
-import { processCollectionData, processCollectionModeData } from '../collection/index';
-import { processButtonStyles, clearProcessedButtonVariants } from '../button/index';
-import { getTypographyPresets } from '../typography/index';
-import { getColorPresetsWithValues } from '../color/index';
-import { getSpacingPresets } from '../spacing/index';
-import { sanitizeCollectionName } from '../utils/css';
+	convertObjectKeysToCamelCase,
+} from "../utils/index";
+import {
+	processCollectionData,
+	processCollectionModeData,
+} from "../collection/index";
+import {
+	processButtonStyles,
+	clearProcessedButtonVariants,
+} from "../button/index";
+import { getTypographyPresets } from "../typography/index";
+import { getColorPresetsWithValues } from "../color/index";
+import { getSpacingPresets } from "../spacing/index";
+import { sanitizeCollectionName } from "../utils/css";
 
 export async function exportToJSON(options: ExportOptions = {}) {
 	// Clear the set of processed button variants at the start of a new export
@@ -21,39 +28,48 @@ export async function exportToJSON(options: ExportOptions = {}) {
 	const collections = await figma.variables.getLocalVariableCollectionsAsync();
 
 	// Filter collections based on selectedCollections option
-	const filteredCollections = options.selectedCollections && options.selectedCollections.length > 0
-		? collections.filter(collection => options.selectedCollections!.includes(collection.id))
-		: collections;
+	const filteredCollections =
+		options.selectedCollections && options.selectedCollections.length > 0
+			? collections.filter((collection) =>
+					options.selectedCollections!.includes(collection.id)
+			  )
+			: collections;
 
 	// Find the "Primitives" collection first
 	const primitivesCollection = filteredCollections.find(
-		collection => collection.name.toLowerCase() === "primitives"
+		(collection) => collection.name.toLowerCase() === "primitives"
 	);
 
 	// Start with the base theme if provided, otherwise create a new theme object
 	const theme = options.baseTheme || {
-		"$schema": "https://schemas.wp.org/trunk/theme.json",
-		"version": 3,
-		"settings": {
-			"custom": {}
-		}
+		$schema: "https://schemas.wp.org/trunk/theme.json",
+		version: 3,
 	};
 
-  // Ensure the theme has the required structure
-  theme.settings = theme.settings || {};
-  theme.settings.custom = theme.settings.custom || {};
-  theme.settings.color = theme.settings.color || {};
+	// Ensure the theme has the required structure
+	theme.settings = theme.settings || {};
+	theme.settings.custom = theme.settings.custom || {};
+	theme.settings.color = theme.settings.color || {};
 
-  // Array to store all files we need to output
-	const allFiles = [{
-		fileName: "theme.json",
-		body: theme
-	}];
+	// Array to store all files we need to output
+	const allFiles = [
+		{
+			fileName: "theme.json",
+			body: theme,
+		},
+	];
 
 	// Process the primitives collection first if it exists
 	if (primitivesCollection) {
-		const primitivesData = await processCollectionData(primitivesCollection, options);
-		mergeCollectionData(theme.settings.custom, "", primitivesData);
+		const primitivesData = await processCollectionData(
+			primitivesCollection,
+			options
+		);
+		mergeCollectionData(
+			theme.settings.custom,
+			"",
+			convertObjectKeysToCamelCase(primitivesData)
+		);
 	}
 
 	// Process all other collections
@@ -64,49 +80,70 @@ export async function exportToJSON(options: ExportOptions = {}) {
 		}
 
 		// Special handling for the Color collection
-		if (collection.name.toLowerCase() === "color" && collection.modes.length > 0) {
+		if (
+			collection.name.toLowerCase() === "color" &&
+			collection.modes.length > 0
+		) {
 			// Process the first mode normally and merge into the main theme
-			const firstModeData = await processCollectionModeData(collection, collection.modes[0], options);
+			const firstModeData = await processCollectionModeData(
+				collection,
+				collection.modes[0],
+				options
+			);
 
 			// Process button styles specially if they exist
-			if (firstModeData && 'button' in firstModeData) {
-				processButtonStyles(firstModeData.button as Record<string, any>, allFiles);
+			if (firstModeData && "button" in firstModeData) {
+				processButtonStyles(
+					firstModeData.button as Record<string, any>,
+					allFiles
+				);
 			}
 
 			// Merge the first mode data into the appropriate location in the base theme
-			mergeCollectionData(theme.settings.custom, "color", firstModeData);
+			mergeCollectionData(
+				theme.settings.custom,
+				"color",
+				convertObjectKeysToCamelCase(firstModeData)
+			);
 
 			// Create section files for Color collections based on specific conditions:
 			// 1. Multiple modes always create section files
 			// 2. Single mode with non-button colors creates section files unless it's only with Primitives
-			const hasNonButtonColors = firstModeData && Object.keys(firstModeData).some(key => key !== 'button');
-			const isOnlyWithPrimitives = filteredCollections.length === 2 && primitivesCollection;
-			const shouldCreateSectionFile = collection.modes.length > 1 || (hasNonButtonColors && !isOnlyWithPrimitives);
+			const hasNonButtonColors =
+				firstModeData &&
+				Object.keys(firstModeData).some((key) => key !== "button");
+			const isOnlyWithPrimitives =
+				filteredCollections.length === 2 && primitivesCollection;
+			const shouldCreateSectionFile =
+				collection.modes.length > 1 ||
+				(hasNonButtonColors && !isOnlyWithPrimitives);
 
 			if (shouldCreateSectionFile) {
 				// Output the first mode as a separate file
 				const firstMode = collection.modes[0];
-				const firstModeNameSlug = firstMode.name.toLowerCase().replace(/\s+/g, '-');
+				const firstModeNameSlug = firstMode.name
+					.toLowerCase()
+					.replace(/\s+/g, "-");
 				const firstModeSectionFile = {
 					fileName: `styles/section-${firstModeNameSlug}.json`,
 					body: {
-						"$schema": "https://schemas.wp.org/trunk/theme.json",
-						"version": 3,
-						"title": firstMode.name,
-						"slug": `section-${firstModeNameSlug}`,
-						"blockTypes": ["core/group"],
-						"settings": {
-							"custom": {
-								"color": firstModeData
-							}
+						$schema: "https://schemas.wp.org/trunk/theme.json",
+						version: 3,
+						title: firstMode.name,
+						slug: `section-${firstModeNameSlug}`,
+						blockTypes: ["core/group"],
+						settings: {
+							custom: {
+								color: firstModeData,
+							},
 						},
-						"styles": {
-							"color": {
-								"background": "var(--wp--custom--color--surface--primary)",
-								"text": "var(--wp--custom--color--text--primary)"
-							}
-						}
-					}
+						styles: {
+							color: {
+								background: "var(--wp--custom--color--surface--primary)",
+								text: "var(--wp--custom--color--text--primary)",
+							},
+						},
+					},
 				};
 				allFiles.push(firstModeSectionFile);
 			}
@@ -114,35 +151,39 @@ export async function exportToJSON(options: ExportOptions = {}) {
 			// Process additional modes for the Color collection
 			for (let i = 1; i < collection.modes.length; i++) {
 				const mode = collection.modes[i];
-				const modeData = await processCollectionModeData(collection, mode, options);
+				const modeData = await processCollectionModeData(
+					collection,
+					mode,
+					options
+				);
 
 				// Process button styles for this mode if they exist
-				if (modeData && 'button' in modeData) {
+				if (modeData && "button" in modeData) {
 					processButtonStyles(modeData.button as Record<string, any>, allFiles);
 				}
 
 				// Create separate file for this color mode
-				const modeNameSlug = mode.name.toLowerCase().replace(/\s+/g, '-');
+				const modeNameSlug = mode.name.toLowerCase().replace(/\s+/g, "-");
 				const sectionFile = {
 					fileName: `styles/section-${modeNameSlug}.json`,
 					body: {
-						"$schema": "https://schemas.wp.org/trunk/theme.json",
-						"version": 3,
-						"title": mode.name,
-						"slug": `section-${modeNameSlug}`,
-						"blockTypes": ["core/group"],
-						"settings": {
-							"custom": {
-								"color": modeData
-							}
+						$schema: "https://schemas.wp.org/trunk/theme.json",
+						version: 3,
+						title: mode.name,
+						slug: `section-${modeNameSlug}`,
+						blockTypes: ["core/group"],
+						settings: {
+							custom: {
+								color: modeData,
+							},
 						},
-						"styles": {
-							"color": {
-								"background": "var(--wp--custom--color--surface--primary)",
-								"text": "var(--wp--custom--color--text--primary)"
-							}
-						}
-					}
+						styles: {
+							color: {
+								background: "var(--wp--custom--color--surface--primary)",
+								text: "var(--wp--custom--color--text--primary)",
+							},
+						},
+					},
 				};
 
 				// Add this section file to our output
@@ -153,32 +194,62 @@ export async function exportToJSON(options: ExportOptions = {}) {
 			// process normally
 			const collectionData = await processCollectionData(collection, options);
 
-      const name = collection.name;
-      if (isWordPressSettingsCollection(name)) {
-				// Only skip wordpress.settings.color(s) from settings.custom
-				if (!isWordPressSettingsColorCollection(name)) {
-					const settingsPath = extractWordPressSettingsPath(name) || sanitizeCollectionName(name);
-					mergeCollectionData(theme.settings.custom, settingsPath, collectionData);
+			const name = collection.name;
+			if (isWordPressSettingsCollection(name)) {
+				const settingsPath = extractWordPressSettingsPath(name);
+				if (settingsPath === "") {
+					// Exact match: merge directly into settings
+					const dataToMerge =
+						collectionData &&
+						typeof collectionData === "object" &&
+						(collectionData as any)["wp.settings"]
+							? (collectionData as any)["wp.settings"]
+							: collectionData;
+					mergeCollectionData(
+						theme.settings,
+						"",
+						convertObjectKeysToCamelCase(dataToMerge)
+					);
+				} else if (!isWordPressSettingsColorCollection(name)) {
+					// Non-color wp.settings.* collections go under settings.custom at extracted path
+					const targetPath = settingsPath || sanitizeCollectionName(name);
+					mergeCollectionData(
+						theme.settings.custom,
+						targetPath,
+						convertObjectKeysToCamelCase(collectionData)
+					);
 				}
-      } else if (isWordPressElementsCollection(name)) {
-        // Map wp.elements.* collections into theme.styles.elements
-        const elementsPath = extractWordPressElementsPath(name); // e.g., "button"
-        // Lazily initialize styles and elements only when needed
-        theme.styles = theme.styles || {} as any;
-        (theme.styles as any).elements = (theme.styles as any).elements || {};
-        const target = (theme.styles as any).elements as Record<string, any>;
-        if (elementsPath) {
-          // Nest under the element key
-          target[elementsPath] = target[elementsPath] || {};
-          mergeCollectionData(target[elementsPath], "", collectionData);
-        } else {
-          // Root elements collection → merge directly into styles.elements
-          mergeCollectionData(target, "", collectionData);
-        }
-      } else {
+			} else if (isWordPressElementsCollection(name)) {
+				// Map wp.elements.* collections into theme.styles.elements
+				const elementsPath = extractWordPressElementsPath(name); // e.g., "button"
+				// Lazily initialize styles and elements only when needed
+				theme.styles = theme.styles || ({} as any);
+				(theme.styles as any).elements = (theme.styles as any).elements || {};
+				const target = (theme.styles as any).elements as Record<string, any>;
+				if (elementsPath) {
+					// Nest under the element key
+					target[elementsPath] = target[elementsPath] || {};
+					mergeCollectionData(
+						target[elementsPath],
+						"",
+						convertObjectKeysToCamelCase(collectionData)
+					);
+				} else {
+					// Root elements collection → merge directly into styles.elements
+					mergeCollectionData(
+						target,
+						"",
+						convertObjectKeysToCamelCase(collectionData)
+					);
+				}
+			} else {
 				// Regular collections: use sanitized name in custom
 				const collectionName = sanitizeCollectionName(name);
-				mergeCollectionData(theme.settings.custom, collectionName, collectionData);
+				mergeCollectionData(
+					theme.settings.custom,
+					collectionName,
+					convertObjectKeysToCamelCase(collectionData)
+				);
 			}
 		}
 	}
@@ -194,7 +265,9 @@ export async function exportToJSON(options: ExportOptions = {}) {
 
 	// Add color presets if requested
 	if (options.generateColorPresets) {
-		const colorPresets = await getColorPresetsWithValues(options.selectedColors);
+		const colorPresets = await getColorPresetsWithValues(
+			options.selectedColors
+		);
 		if (colorPresets.length > 0) {
 			theme.settings.color = theme.settings.color || {};
 			theme.settings.color.palette = colorPresets;
@@ -202,10 +275,16 @@ export async function exportToJSON(options: ExportOptions = {}) {
 	}
 
 	// Ensure palette exists when elements are referencing preset colors
-	if (options.elementsColorExportMode === 'preset') {
-		const hasPalette = !!(theme.settings.color && Array.isArray((theme.settings.color as any).palette) && (theme.settings.color as any).palette.length > 0);
+	if (options.elementsColorExportMode === "preset") {
+		const hasPalette = !!(
+			theme.settings.color &&
+			Array.isArray((theme.settings.color as any).palette) &&
+			(theme.settings.color as any).palette.length > 0
+		);
 		if (!hasPalette) {
-			const colorPresets = await getColorPresetsWithValues(options.selectedColors);
+			const colorPresets = await getColorPresetsWithValues(
+				options.selectedColors
+			);
 			if (colorPresets.length > 0) {
 				theme.settings.color = theme.settings.color || {};
 				(theme.settings.color as any).palette = colorPresets;
@@ -225,6 +304,6 @@ export async function exportToJSON(options: ExportOptions = {}) {
 	// Send the result back to the UI
 	figma.ui.postMessage({
 		type: "EXPORT_RESULT",
-		files: allFiles
+		files: allFiles,
 	});
-} 
+}

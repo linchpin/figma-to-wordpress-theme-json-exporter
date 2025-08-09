@@ -15,11 +15,38 @@ export async function processCollectionModeData(collection: VariableCollection, 
 		const { name, resolvedType, valuesByMode } = variable;
 		const value = valuesByMode[mode.modeId];
 
-		if (value !== undefined && ["COLOR", "FLOAT"].includes(resolvedType)) {
+        if (value !== undefined && ["COLOR", "FLOAT"].includes(resolvedType)) {
 			// Build the nested structure in our temporary object
 			let obj = variablesData;
-			// Convert the name parts to sanitized format
-			const nameParts = name.split("/").map(part => sanitizeCollectionName(part));
+            // Convert the name parts to sanitized format
+            // Special handling for WordPress elements collections to preserve pseudo selectors like ":hover"
+            const nameParts = ((): string[] => {
+                const parts = name.split("/");
+                // If the collection is exactly wp.settings and variable name starts with wp.settings,
+                // drop the leading segment so keys nest directly under settings
+                if (collection.name && collection.name.trim().toLowerCase() === 'wp.settings') {
+                    const first = String(parts[0] || '').trim().toLowerCase();
+                    if (first === 'wp.settings') {
+                        parts.shift();
+                    }
+                }
+                if (isWordPressElementsCollection(collection.name)) {
+                    return parts.map(originalPart => {
+                        const part = String(originalPart).trim().toLowerCase();
+                        if (part.startsWith(":")) {
+                            // Preserve leading colon for pseudo selectors
+                            const core = part
+                                .slice(1)
+                                .replace(/[^a-z0-9-]/g, "-")
+                                .replace(/^-+|-+$/g, "")
+                                .replace(/-+/g, "-");
+                            return `:${core}`;
+                        }
+                        return sanitizeCollectionName(part);
+                    });
+                }
+                return parts.map(p => sanitizeCollectionName(p));
+            })();
 
 			// Navigate to the appropriate nesting level
 			for (let i = 0; i < nameParts.length - 1; i++) {
@@ -69,9 +96,9 @@ export async function processCollectionModeData(collection: VariableCollection, 
 }
 
 // Update processCollectionData to use the new helper function
-export async function processCollectionData({ name, modes, variableIds }: VariableCollection, options?: ExportOptions) {
+export async function processCollectionData({ name: collectionName, modes, variableIds }: VariableCollection, options?: ExportOptions) {
 	// Check if this collection has exactly two modes named "Desktop" and "Mobile"
-	const isFluidCollection = modes.length === 2 &&
+    const isFluidCollection = modes.length === 2 &&
 		modes.some(mode => mode.name.toLowerCase() === "desktop") &&
 		modes.some(mode => mode.name.toLowerCase() === "mobile");
 
@@ -83,11 +110,11 @@ export async function processCollectionData({ name, modes, variableIds }: Variab
 		
 		if (!desktopMode || !mobileMode) {
 			// Fallback to first mode if desktop/mobile not found
-			return await processCollectionModeData(
-				{ name, modes, variableIds } as VariableCollection,
-				modes[0],
-				options
-			);
+            return await processCollectionModeData(
+                { name: collectionName, modes, variableIds } as VariableCollection,
+                modes[0],
+                options
+            );
 		}
 
 		const desktopModeId = desktopMode.modeId;
@@ -101,7 +128,7 @@ export async function processCollectionData({ name, modes, variableIds }: Variab
 			const variable = await figma.variables.getVariableByIdAsync(variableId);
 			if (!variable) continue;
 
-			const { name, resolvedType, valuesByMode } = variable;
+            const { name, resolvedType, valuesByMode } = variable;
 
 			const desktopValue = valuesByMode[desktopModeId];
 			const mobileValue = valuesByMode[mobileModeId];
@@ -111,8 +138,33 @@ export async function processCollectionData({ name, modes, variableIds }: Variab
 
 				// Build the nested structure in our temporary object
 				let obj = variablesData;
-				// Convert the name parts to lowercase
-				const nameParts = name.split("/").map(part => part.toLowerCase());
+                // Convert the name parts, preserving pseudo selectors like ":hover" for WordPress elements collections
+                const nameParts = ((): string[] => {
+                    const parts = name.split("/");
+                    // If the collection is exactly wp.settings and variable name starts with wp.settings,
+                    // drop the leading segment so keys nest directly under settings
+                    if (collectionName && collectionName.trim().toLowerCase() === 'wp.settings') {
+                        const first = String(parts[0] || '').trim().toLowerCase();
+                        if (first === 'wp.settings') {
+                            parts.shift();
+                        }
+                    }
+                    if (isWordPressElementsCollection(collectionName)) {
+                        return parts.map(originalPart => {
+                            const part = String(originalPart).trim().toLowerCase();
+                            if (part.startsWith(":")) {
+                                const core = part
+                                    .slice(1)
+                                    .replace(/[^a-z0-9-]/g, "-")
+                                    .replace(/^-+|-+$/g, "")
+                                    .replace(/-+/g, "-");
+                                return `:${core}`;
+                            }
+                            return sanitizeCollectionName(part);
+                        });
+                    }
+                    return parts.map(p => p.toLowerCase());
+                })();
 
 				// Navigate to the appropriate nesting level
 				for (let i = 0; i < nameParts.length - 1; i++) {
@@ -187,10 +239,10 @@ export async function processCollectionData({ name, modes, variableIds }: Variab
 		return variablesData;
 	} else {
 		// For regular collections, use the first mode
-		return await processCollectionModeData(
-			{ name, modes, variableIds } as VariableCollection,
-			modes[0],
-			options
-		);
+            return await processCollectionModeData(
+                { name: collectionName, modes, variableIds } as VariableCollection,
+                modes[0],
+                options
+            );
 	}
 } 

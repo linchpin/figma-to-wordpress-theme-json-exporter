@@ -7,5 +7,4 @@ out/
 dist/
 /coverage
 /.DS_Store
-examples/ollie-theme.json
-examples/generated-theme.json
+examples/*
