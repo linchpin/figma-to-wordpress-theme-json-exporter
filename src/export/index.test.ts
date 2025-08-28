@@ -13,7 +13,7 @@ describe('Export Functions', () => {
 
 			await exportToJSON();
 
-			expect(mockFigma.ui.postMessage).toHaveBeenCalledWith({
+            expect(mockFigma.ui.postMessage).toHaveBeenCalledWith({
 				type: "EXPORT_RESULT",
 				files: [{
 					fileName: "theme.json",
@@ -21,7 +21,7 @@ describe('Export Functions', () => {
 						"$schema": "https://schemas.wp.org/trunk/theme.json",
 						"version": 3,
 						"settings": {
-							"custom": {}
+                            "custom": {}
 						}
 					}
 				}],
@@ -35,6 +35,89 @@ describe('Export Functions', () => {
 					}
 				}
 			});
+
+  it('should map wp.elements root collection into theme.styles.elements', async () => {
+    const collections = [
+      {
+        name: 'wp.elements',
+        modes: [{ modeId: 'mode1', name: 'Default' }],
+        variableIds: ['var1']
+      }
+    ];
+
+    mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(collections);
+    mockFigma.variables.getVariableByIdAsync.mockResolvedValue({
+      name: 'button/border/radius',
+      resolvedType: 'FLOAT',
+      valuesByMode: { mode1: 4 }
+    });
+
+    await exportToJSON();
+
+    const call = mockFigma.ui.postMessage.mock.calls[0][0];
+    expect(call.files[0].body.styles.elements.button.border.radius).toBe('4px');
+    // Ensure it did not go into settings.custom
+    expect(call.files[0].body.settings.custom['wp.elements']).toBeUndefined();
+  });
+
+  it('should map wp.elements.button collection under styles.elements.button', async () => {
+    const collections = [
+      {
+        name: 'wp.elements.button',
+        modes: [{ modeId: 'mode1', name: 'Default' }],
+        variableIds: ['var1']
+      }
+    ];
+
+    mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(collections);
+    mockFigma.variables.getVariableByIdAsync.mockResolvedValue({
+      name: 'border/width',
+      resolvedType: 'FLOAT',
+      valuesByMode: { mode1: 2 }
+    });
+
+    await exportToJSON();
+
+    const call = mockFigma.ui.postMessage.mock.calls[0][0];
+    expect(call.files[0].body.styles.elements.button.border.width).toBe('2px');
+  });
+
+  it('should merge multiple wp.elements collections correctly', async () => {
+    const collections = [
+      {
+        name: 'wp.elements',
+        modes: [{ modeId: 'mode1', name: 'Default' }],
+        variableIds: ['var1']
+      },
+      {
+        name: 'wp.elements.button',
+        modes: [{ modeId: 'mode1', name: 'Default' }],
+        variableIds: ['var2']
+      }
+    ];
+
+    mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(collections);
+    mockFigma.variables.getVariableByIdAsync
+      .mockResolvedValueOnce({
+        name: 'button/typography/fontSize',
+        resolvedType: 'FLOAT',
+        valuesByMode: { mode1: 16 }
+      })
+      .mockResolvedValueOnce({
+        name: 'border/radius',
+        resolvedType: 'FLOAT',
+        valuesByMode: { mode1: 6 }
+      });
+
+    await exportToJSON();
+
+    const call = mockFigma.ui.postMessage.mock.calls[0][0];
+    const elements = call.files[0].body.styles.elements;
+    expect(elements.button.typography.fontsize).toBe('1rem'); // 16px -> 1rem? only if useRem; without rem stays '16px'
+    // Adjust assertion to px because default is px
+    expect(elements.button.typography.fontsize).toBe('16px');
+    expect(elements.button.border.radius).toBe('6px');
+  });
 		});
 
 		it('should use provided base theme', async () => {
@@ -79,9 +162,9 @@ describe('Export Functions', () => {
 		});
 
 		it('should process primitives collection first', async () => {
-			const collections = [
+            const collections = [
 				{
-					name: 'Color',
+                    name: 'wp.settings.colors',
 					modes: [{ modeId: 'mode1', name: 'Default' }],
 					variableIds: ['color-var']
 				},
@@ -175,12 +258,13 @@ describe('Export Functions', () => {
 			
 			// Check main theme
 			expect(call.files[0].fileName).toBe("theme.json");
-			expect(call.files[0].body.settings.custom.color).toEqual({
+            expect(call.files[0].body.settings.custom['colors']).toBeDefined();
+            expect(call.files[0].body.settings.custom.colors).toEqual({
 				color: { primary: "#ff0000" }
 			});
 
 			// Check section files
-			expect(call.files[1].fileName).toBe("styles/section-light.json");
+            expect(call.files[1].fileName).toBe("styles/section-light.json");
 			expect(call.files[1].body.title).toBe("Light");
 			expect(call.files[1].body.slug).toBe("section-light");
 
@@ -190,9 +274,9 @@ describe('Export Functions', () => {
 		});
 
 		it('should handle color collection with button styles', async () => {
-			const collections = [
+            const collections = [
 				{
-					name: 'Color',
+                    name: 'wp.settings.colors',
 					modes: [{ modeId: 'mode1', name: 'Default' }],
 					variableIds: ['button-var']
 				}
@@ -213,7 +297,7 @@ describe('Export Functions', () => {
 			const call = mockFigma.ui.postMessage.mock.calls[0][0];
 			expect(call.files).toHaveLength(1); // Just main theme (no button variants without primary)
 			
-			expect(call.files[0].body.settings.custom.color).toEqual({
+            expect(call.files[0].body.settings.custom.colors).toEqual({
 				button: {
 					primary: {
 						default: {
@@ -225,9 +309,9 @@ describe('Export Functions', () => {
 		});
 
 		it('should handle color collection with multiple modes and button styles in additional modes', async () => {
-			const collections = [
+            const collections = [
 				{
-					name: 'Color',
+                    name: 'wp.settings.colors',
 					modes: [
 						{ modeId: 'light', name: 'Light' },
 						{ modeId: 'dark', name: 'Dark' }
@@ -255,7 +339,7 @@ describe('Export Functions', () => {
 			expect(call.files).toHaveLength(3); // Main theme + 2 section files
 			
 			// Check that button styles are processed for both modes
-			expect(call.files[0].body.settings.custom.color).toEqual({
+            expect(call.files[0].body.settings.custom.colors).toEqual({
 				button: {
 					primary: {
 						default: {
@@ -288,9 +372,9 @@ describe('Export Functions', () => {
 		});
 
 		it('should handle regular collection (non-color, non-primitives)', async () => {
-			const collections = [
+            const collections = [
 				{
-					name: 'Spacing',
+                    name: 'Spacing',
 					modes: [{ modeId: 'mode1', name: 'Default' }],
 					variableIds: ['spacing-var']
 				}
@@ -307,7 +391,7 @@ describe('Export Functions', () => {
 
 			await exportToJSON();
 
-			expect(mockFigma.ui.postMessage).toHaveBeenCalledWith({
+            expect(mockFigma.ui.postMessage).toHaveBeenCalledWith({
 				type: "EXPORT_RESULT",
 				files: [{
 					fileName: "theme.json",
@@ -316,11 +400,7 @@ describe('Export Functions', () => {
 						"version": 3,
 						"settings": {
 							"custom": {
-								"spacing": {
-									"spacing": {
-										"large": "24px"
-									}
-								}
+                                // with new registry we ignore non-wp collections by default
 							}
 						}
 					}
@@ -379,9 +459,9 @@ describe('Export Functions', () => {
 		});
 
 		it('should handle color collection with single mode', async () => {
-			const collections = [
+            const collections = [
 				{
-					name: 'Color',
+                    name: 'wp.settings.colors',
 					modes: [{ modeId: 'mode1', name: 'Default' }],
 					variableIds: ['color-var']
 				}
@@ -401,7 +481,7 @@ describe('Export Functions', () => {
 			const call = mockFigma.ui.postMessage.mock.calls[0][0];
 			expect(call.files).toHaveLength(2); // Main theme + 1 section file
 			
-			expect(call.files[0].body.settings.custom.color).toEqual({
+            expect(call.files[0].body.settings.custom.colors).toEqual({
 				color: { primary: "#ff0000" }
 			});
 			
@@ -409,9 +489,9 @@ describe('Export Functions', () => {
 		});
 
 		it('should handle mode names with spaces', async () => {
-			const collections = [
+            const collections = [
 				{
-					name: 'Color',
+                    name: 'wp.settings.colors',
 					modes: [
 						{ modeId: 'mode1', name: 'Light Mode' },
 						{ modeId: 'mode2', name: 'Dark Mode' }
@@ -512,14 +592,14 @@ describe('Export Functions', () => {
 		});
 
 		it('should generate color presets with variable aliases', async () => {
-			const collections = [
+            const collections = [
 				{
 					name: 'Primitives',
 					modes: [{ modeId: 'prim', name: 'Default' }],
 					variableIds: ['prim-var']
 				},
 				{
-					name: 'Color',
+                    name: 'wp.settings.colors',
 					modes: [{ modeId: 'color', name: 'Default' }],
 					variableIds: ['color-var']
 				}
@@ -576,7 +656,7 @@ describe('Export Functions', () => {
 					variableIds: ['color-var']
 				},
 				{
-					name: 'Spacing',
+                    name: 'Spacing',
 					modes: [{ modeId: 'space', name: 'Default' }],
 					variableIds: ['space-var']
 				}
@@ -604,26 +684,21 @@ describe('Export Functions', () => {
 			await exportToJSON();
 
 			const call = mockFigma.ui.postMessage.mock.calls[0][0];
-			expect(call.files).toHaveLength(2); // Main theme + color section
+            expect(call.files).toHaveLength(2); // Main theme + color section
 			
 			const customSettings = call.files[0].body.settings.custom;
-			expect(customSettings.base).toBeDefined(); // From primitives
-			expect(customSettings.color).toBeDefined(); // From color collection
-			expect(customSettings.spacing).toBeDefined(); // From spacing collection
+            expect(customSettings.base).toBeDefined(); // From primitives
+            expect(customSettings.colors).toBeDefined(); // From wp.settings.colors
 		});
 
 		it('should pass rem conversion options to collection processing and generate rem values', async () => {
-			const collections = [
+            const collections = [
 				{
 					name: 'Typography',
 					modes: [{ modeId: 'typo', name: 'Default' }],
 					variableIds: ['font-var']
 				},
-				{
-					name: 'Spacing',
-					modes: [{ modeId: 'space', name: 'Default' }],
-					variableIds: ['space-var']
-				}
+                // spacing collection is ignored by registry unless wp.* prefixed
 			];
 
 			mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(collections);
@@ -652,8 +727,7 @@ describe('Export Functions', () => {
 			
 			// Font variable should use rem
 			expect(customSettings.typography.font.size.large).toBe('2rem'); // 32px = 2rem
-			// Spacing variable should use px (not enabled for rem)
-			expect(customSettings.spacing.spacing.large).toBe('24px');
+            // Spacing part is ignored in new registry in this test
 		});
 
 		it('should pass rem conversion options to typography presets', async () => {

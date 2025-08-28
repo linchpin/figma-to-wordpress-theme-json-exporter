@@ -21,14 +21,14 @@ The WordPress Theme.json Exporter plugin automatically converts Figma color vari
 
 ## Supported Variable Types
 
-The plugin processes COLOR variables from all collections except the "Primitives" collection:
+The plugin processes COLOR variables from all "WordPress" prefixed collections:
 
-| Collection Type | Processing | Example Variables |
-|----------------|------------|-------------------|
-| Color | All COLOR variables processed | `primary`, `secondary`, `accent` |
-| Design System | All COLOR variables processed | `brand/primary`, `ui/background` |
-| Layout | All COLOR variables processed | `surface/light`, `border/default` |
-| Primitives | **Excluded** from color presets | Used for base theme variables only |
+| Collection Type | Processing                      | Example Variables                |
+|-----------------|---------------------------------|----------------------------------|
+| Color           | All COLOR variables processed   | `primary`, `secondary`, `accent` |
+| Design System   | All COLOR variables processed   | `brand/primary`, `ui/background` |
+| Layout          | All COLOR variables processed   | `surface/light`, `border/default` |
+| Primitives      | **Excluded** from color presets | Used for base theme variables only |
 
 ## How Color Presets Are Exported
 

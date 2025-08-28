@@ -1,11 +1,26 @@
-import { ExportOptions } from '../types';
-import { mergeCollectionData } from '../utils/index';
-import { processCollectionData, processCollectionModeData } from '../collection/index';
-import { processButtonStyles, clearProcessedButtonVariants } from '../button/index';
-import { getTypographyPresets, getWordPressTypographyPresets } from '../typography/index';
-import { getColorPresets } from '../color/index';
-import { getSpacingPresets } from '../spacing/index';
-import { validateThemeJson, formatValidationResults } from '../utils/validation';
+import { ExportOptions } from "../types";
+import {
+	mergeCollectionData,
+	extractWordPressSettingsPath,
+	extractWordPressElementsPath,
+	isWordPressSettingsCollection,
+	isWordPressSettingsColorCollection,
+	isWordPressElementsCollection,
+	convertObjectKeysToCamelCase,
+} from "../utils/index";
+import {
+	processCollectionData,
+	processCollectionModeData,
+} from "../collection/index";
+import {
+	processButtonStyles,
+	clearProcessedButtonVariants,
+} from "../button/index";
+import { getTypographyPresets } from "../typography/index";
+import { getColorPresets, getColorPresetsWithValues } from "../color/index";
+import { getSpacingPresets } from "../spacing/index";
+import { sanitizeCollectionName } from "../utils/css";
+import { dispatchCollection } from "../collections/registry";
 
 export async function exportToJSON(options: ExportOptions = {}) {
 	// Clear the set of processed button variants at the start of a new export
@@ -13,138 +28,120 @@ export async function exportToJSON(options: ExportOptions = {}) {
 
 	const collections = await figma.variables.getLocalVariableCollectionsAsync();
 
+	// Filter collections based on selectedCollections option
+	const filteredCollections =
+		options.selectedCollections && options.selectedCollections.length > 0
+			? collections.filter((collection) =>
+					options.selectedCollections!.includes(collection.id)
+			  )
+			: collections;
+
 	// Find the "Primitives" collection first
-	const primitivesCollection = collections.find(
-		collection => collection.name.toLowerCase() === "primitives"
+	const primitivesCollection = filteredCollections.find(
+		(collection) => collection.name.toLowerCase() === "primitives"
 	);
 
-	// Start with the base theme if provided, otherwise create a new theme object
-	const theme = options.baseTheme || {
-		"$schema": "https://schemas.wp.org/trunk/theme.json",
-		"version": 3,
-		"settings": {
-			"custom": {}
-		}
-	};
+    // Start with the base theme if provided, otherwise create a new theme object
+    const theme = options.baseTheme || {
+        $schema: "https://schemas.wp.org/trunk/theme.json",
+        version: 3,
+    };
 
 	// Ensure the theme has the required structure
-	theme.settings = theme.settings || {};
-	theme.settings.custom = theme.settings.custom || {};
+    theme.settings = theme.settings || {};
+    theme.settings.custom = theme.settings.custom || {};
+    // Do not pre-create color unless needed; tests expect it absent when not used
+    // theme.settings.color remains undefined until presets or other code set it
 
 	// Array to store all files we need to output
-	const allFiles = [{
-		fileName: "theme.json",
-		body: theme
-	}];
+	const allFiles = [
+		{
+			fileName: "theme.json",
+			body: theme,
+		},
+	];
 
-	// Process the primitives collection first if it exists
-	if (primitivesCollection) {
-		const primitivesData = await processCollectionData(primitivesCollection, options);
-		mergeCollectionData(theme.settings.custom, "", primitivesData);
-	}
+	if (options.useCollectionsRegistry) {
+		// New modular routing: process wp.* collections and explicitly selected non-wp collections
+		const ctx = { theme, files: allFiles };
+		const isSelected = (id: string) =>
+			Array.isArray(options.selectedCollections) &&
+			options.selectedCollections.includes(id);
 
-	// Process all other collections
-	for (const collection of collections) {
-		// Skip the primitives collection as we've already processed it
-		if (collection.name.toLowerCase() === "primitives") {
-			continue;
+		for (const collection of filteredCollections) {
+			const isWp = /^wp\./i.test(collection.name || "");
+			if (isWp || isSelected((collection as any).id)) {
+				await dispatchCollection(collection as any, ctx, options);
+			}
+		}
+	} else {
+		// Legacy generic processing path: merge all collections broadly as before
+		// Process primitives first if present
+		if (primitivesCollection) {
+			const primitivesData = await processCollectionData(
+				primitivesCollection,
+				options
+			);
+			mergeCollectionData(
+				theme.settings.custom,
+				"",
+				convertObjectKeysToCamelCase(primitivesData)
+			);
 		}
 
-		// Special handling for the Color collection
-		if (collection.name.toLowerCase() === "color" && collection.modes.length > 0) {
-			// Process the first mode normally and merge into the main theme
-			const firstModeData = await processCollectionModeData(collection, collection.modes[0], options);
-
-			// Process button styles specially if they exist
-			if (firstModeData && 'button' in firstModeData) {
-				processButtonStyles(firstModeData.button as Record<string, any>, allFiles);
-			}
-
-			// Merge the first mode data into the appropriate location in the base theme
-			mergeCollectionData(theme.settings.custom, "color", firstModeData);
-
-			// Create section files for Color collections based on specific conditions:
-			// 1. Multiple modes always create section files
-			// 2. Single mode with non-button colors creates section files unless it's only with Primitives
-			const hasNonButtonColors = firstModeData && Object.keys(firstModeData).some(key => key !== 'button');
-			const isOnlyWithPrimitives = collections.length === 2 && primitivesCollection;
-			const shouldCreateSectionFile = collection.modes.length > 1 || (hasNonButtonColors && !isOnlyWithPrimitives);
-
-			if (shouldCreateSectionFile) {
-				// Output the first mode as a separate file
-				const firstMode = collection.modes[0];
-				const firstModeNameSlug = firstMode.name.toLowerCase().replace(/\s+/g, '-');
-				const firstModeSectionFile = {
-					fileName: `styles/section-${firstModeNameSlug}.json`,
-					body: {
-						"$schema": "https://schemas.wp.org/trunk/theme.json",
-						"version": 3,
-						"title": firstMode.name,
-						"slug": `section-${firstModeNameSlug}`,
-						"blockTypes": ["core/group"],
-						"settings": {
-							"custom": {
-								"color": firstModeData
-							}
-						},
-						"styles": {
-							"color": {
-								"background": "var(--wp--custom--color--surface--primary)",
-								"text": "var(--wp--custom--color--text--primary)"
-							}
-						}
-					}
-				};
-				allFiles.push(firstModeSectionFile);
-			}
-
-			// Process additional modes for the Color collection
-			for (let i = 1; i < collection.modes.length; i++) {
-				const mode = collection.modes[i];
-				const modeData = await processCollectionModeData(collection, mode, options);
-
-				// Process button styles for this mode if they exist
-				if (modeData && 'button' in modeData) {
-					processButtonStyles(modeData.button as Record<string, any>, allFiles);
-				}
-
-				// Create separate file for this color mode
-				const modeNameSlug = mode.name.toLowerCase().replace(/\s+/g, '-');
-				const sectionFile = {
-					fileName: `styles/section-${modeNameSlug}.json`,
-					body: {
-						"$schema": "https://schemas.wp.org/trunk/theme.json",
-						"version": 3,
-						"title": mode.name,
-						"slug": `section-${modeNameSlug}`,
-						"blockTypes": ["core/group"],
-						"settings": {
-							"custom": {
-								"color": modeData
-							}
-						},
-						"styles": {
-							"color": {
-								"background": "var(--wp--custom--color--surface--primary)",
-								"text": "var(--wp--custom--color--text--primary)"
-							}
-						}
-					}
-				};
-
-				// Add this section file to our output
-				allFiles.push(sectionFile);
-			}
-		} else {
-			// For non-Color collections or Color collection with just one mode,
-			// process normally
+		for (const collection of filteredCollections) {
+			if (collection.name.toLowerCase() === "primitives") continue;
 			const collectionData = await processCollectionData(collection, options);
-
-			// Determine where to merge this collection's data based on its name
-			const collectionName = collection.name.toLowerCase();
-
-			// Merge the collection data into the appropriate location in the base theme
-			mergeCollectionData(theme.settings.custom, collectionName, collectionData);
+			const name = collection.name;
+			if (isWordPressSettingsCollection(name)) {
+				const settingsPath = extractWordPressSettingsPath(name);
+				if (settingsPath === "") {
+					const dataToMerge =
+						collectionData &&
+						typeof collectionData === "object" &&
+						(collectionData as any)["wp.settings"]
+							? (collectionData as any)["wp.settings"]
+							: collectionData;
+					mergeCollectionData(
+						theme.settings,
+						"",
+						convertObjectKeysToCamelCase(dataToMerge)
+					);
+				} else if (!isWordPressSettingsColorCollection(name)) {
+					const targetPath = settingsPath || sanitizeCollectionName(name);
+					mergeCollectionData(
+						theme.settings.custom,
+						targetPath,
+						convertObjectKeysToCamelCase(collectionData)
+					);
+				}
+			} else if (isWordPressElementsCollection(name)) {
+				const elementsPath = extractWordPressElementsPath(name);
+				theme.styles = theme.styles || ({} as any);
+				(theme.styles as any).elements = (theme.styles as any).elements || {};
+				const target = (theme.styles as any).elements as Record<string, any>;
+				if (elementsPath) {
+					target[elementsPath] = target[elementsPath] || {};
+					mergeCollectionData(
+						target[elementsPath],
+						"",
+						convertObjectKeysToCamelCase(collectionData)
+					);
+				} else {
+					mergeCollectionData(
+						target,
+						"",
+						convertObjectKeysToCamelCase(collectionData)
+					);
+				}
+			} else {
+				const collectionName = sanitizeCollectionName(name);
+				mergeCollectionData(
+					theme.settings.custom,
+					collectionName,
+					convertObjectKeysToCamelCase(collectionData)
+				);
+			}
 		}
 	}
 
@@ -186,10 +183,30 @@ export async function exportToJSON(options: ExportOptions = {}) {
 
 	// Add color presets if requested
 	if (options.generateColorPresets) {
-		const colorPresets = await getColorPresets(options.selectedColors);
+		const colorPresets = options.useCollectionsRegistry
+			? await getColorPresetsWithValues(options.selectedColors)
+			: await getColorPresets(options.selectedColors);
 		if (colorPresets.length > 0) {
 			theme.settings.color = theme.settings.color || {};
 			theme.settings.color.palette = colorPresets;
+		}
+	}
+
+	// Ensure palette exists when elements are referencing preset colors
+	if (options.elementsColorExportMode === "preset") {
+		const hasPalette = !!(
+			theme.settings.color &&
+			Array.isArray((theme.settings.color as any).palette) &&
+			(theme.settings.color as any).palette.length > 0
+		);
+		if (!hasPalette) {
+			const colorPresets = options.useCollectionsRegistry
+				? await getColorPresetsWithValues(options.selectedColors)
+				: await getColorPresets(options.selectedColors);
+			if (colorPresets.length > 0) {
+				theme.settings.color = theme.settings.color || {};
+				(theme.settings.color as any).palette = colorPresets;
+			}
 		}
 	}
 
@@ -224,10 +241,5 @@ export async function exportToJSON(options: ExportOptions = {}) {
 	figma.ui.postMessage({
 		type: "EXPORT_RESULT",
 		files: allFiles,
-		validation: validationResult ? {
-			isValid: validationResult.isValid,
-			message: formatValidationResults(validationResult),
-			details: validationResult
-		} : null
 	});
-} 
+}

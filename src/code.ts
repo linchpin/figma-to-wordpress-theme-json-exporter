@@ -9,12 +9,16 @@ figma.ui.onmessage = async (e) => {
 	console.log("code received message", e);
 	if (e.type === "EXPORT") {
 		// Extract options from the message
-		const options: ExportOptions = e.options || {};
+		const options: ExportOptions = {
+		useCollectionsRegistry: true,
+		...(e.options || {})
+		};
 		await exportToJSON(options);
 	} else if (e.type === "GET_COLOR_PRESETS") {
 		// Get all available color presets for the UI
 		try {
-			const colorPresets = await getAllColorPresets();
+			const { selectedCollectionIds } = e.options || {};
+			const colorPresets = await getAllColorPresets(selectedCollectionIds);
 			figma.ui.postMessage({
 				type: "COLOR_PRESETS_RESULT",
 				colorPresets
@@ -23,6 +27,26 @@ figma.ui.onmessage = async (e) => {
 			figma.ui.postMessage({
 				type: "COLOR_PRESETS_RESULT",
 				error: error instanceof Error ? error.message : "Failed to get color presets"
+			});
+		}
+	} else if (e.type === "GET_COLLECTIONS") {
+		// Get all available collections for the UI
+		try {
+			const collections = await figma.variables.getLocalVariableCollectionsAsync();
+			const collectionData = collections.map(collection => ({
+				id: collection.id,
+				name: collection.name,
+				modeCount: collection.modes.length,
+				variableCount: collection.variableIds.length
+			}));
+			figma.ui.postMessage({
+				type: "COLLECTIONS_RESULT",
+				collections: collectionData
+			});
+		} catch (error) {
+			figma.ui.postMessage({
+				type: "COLLECTIONS_RESULT",
+				error: error instanceof Error ? error.message : "Failed to get collections"
 			});
 		}
 	} else if (e.type === "APPLY_CSS_VAR_SYNTAX") {
@@ -53,8 +77,8 @@ figma.ui.onmessage = async (e) => {
 
 if (figma.command === "export") {
 	figma.showUI(__uiFiles__["export"], {
-		width: 500,
-		height: 500,
+		width: 600,
+		height: 600,
 		themeColors: true,
 	});
 } else if (figma.command === "css-vars") {

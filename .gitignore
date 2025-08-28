@@ -7,3 +7,4 @@ out/
 dist/
 /coverage
 /.DS_Store
+examples/*

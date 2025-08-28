@@ -15,8 +15,8 @@
 	  color: var(--figma-color-text);
 	  margin: 0;
 	  padding: var(--spacing);
-	  min-height: 300px;
-	  min-width: 300px;
+	  min-height: 400px;
+	  min-width: 400px;
 	  position: relative;
 	  overflow: hidden;
 	}
@@ -30,8 +30,8 @@
 	  display: flex;
 	  flex-direction: column;
 	  gap: var(--spacing);
-	  max-height: calc(100% - 20px);
-	  overflow-y: auto;
+	  height: 100%;
+	  overflow: hidden;
 	}
   
 	button {
@@ -44,13 +44,15 @@
 	  background-color: var(--figma-color-bg-secondary);
 	  border: 2px solid var(--figma-color-border);
 	  color: var(--figma-color-text-secondary);
-	  height: 200px;
+	  min-height: 150px;
+	  max-height: 300px;
 	  font-family: Andale Mono, monospace;
 	  font-size: 0.9rem;
 	  overflow: auto;
 	  padding: var(--spacing);
 	  white-space: pre;
 	  resize: vertical;
+	  flex: 1;
 	}
 	textarea:focus {
 	  border-color: var(--figma-color-border-selected);
@@ -80,12 +82,14 @@
 	.button-row {
 	  display: flex;
 	  gap: var(--spacing);
+	  flex-shrink: 0;
 	}
 
 	.info-text {
 	  font-size: 0.9rem;
 	  margin-bottom: var(--spacing);
 	  color: var(--figma-color-text-secondary);
+	  flex-shrink: 0;
 	}
 
 	#download {
@@ -108,6 +112,13 @@
 	  border-radius: 4px;
 	  margin-bottom: var(--spacing);
 	  overflow: hidden;
+	  flex-shrink: 0;
+	  display: flex;
+	  flex-direction: column;
+	}
+
+	.file-container:last-child {
+	  margin-bottom: 0;
 	}
 
 	.file-header {
@@ -117,6 +128,7 @@
 	  justify-content: space-between;
 	  align-items: center;
 	  padding: calc(var(--spacing) / 2) var(--spacing);
+	  flex-shrink: 0;
 	}
 
 	.file-name {
@@ -149,6 +161,9 @@
 	  display: flex;
 	  flex-direction: column;
 	  gap: var(--spacing);
+	  flex: 1;
+	  overflow-y: auto;
+	  min-height: 0;
 	}
 
 	.empty-state {
@@ -156,6 +171,7 @@
 	  text-align: center;
 	  padding: var(--spacing);
 	  font-style: italic;
+	  flex-shrink: 0;
 	}
 	
 	.options {
@@ -166,6 +182,7 @@
 	  background-color: var(--figma-color-bg-secondary);
 	  padding: var(--spacing);
 	  border-radius: 4px;
+	  flex-shrink: 0;
 	}
 	
 	.option-row {
@@ -358,6 +375,9 @@
 	  padding: var(--spacing);
 	  overflow-y: auto;
 	  flex: 1;
+	  display: flex;
+	  flex-direction: column;
+	  min-height: 0;
 	}
 
 	.modal-footer {
@@ -368,14 +388,182 @@
 	  justify-content: flex-end;
 	}
 
+	/* Step navigation styles */
+	.step-navigation {
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 2);
+	  margin-bottom: var(--spacing);
+	  padding: calc(var(--spacing) / 2);
+	  background-color: var(--figma-color-bg-secondary);
+	  border-radius: 4px;
+	  flex-shrink: 0;
+	}
+
+	.step-indicator {
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 4);
+	  padding: calc(var(--spacing) / 4) calc(var(--spacing) / 2);
+	  border-radius: 4px;
+	  font-size: 0.8rem;
+	  font-weight: 500;
+	  cursor: pointer;
+	  transition: all 0.2s;
+	  position: relative;
+	}
+
+	.step-indicator span:first-child {
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  width: 20px;
+	  height: 20px;
+	  border-radius: 50%;
+	  font-size: 0.7rem;
+	  font-weight: bold;
+	}
+
+	.step-indicator.active {
+	  background-color: var(--figma-color-bg-brand);
+	  color: var(--figma-color-text-onbrand);
+	}
+
+	.step-indicator.active span:first-child {
+	  background-color: var(--figma-color-text-onbrand);
+	  color: var(--figma-color-bg-brand);
+	}
+
+	.step-indicator.completed {
+	  background-color: var(--figma-color-bg-success);
+	  color: var(--figma-color-text-onbrand);
+	}
+
+	.step-indicator.completed span:first-child {
+	  background-color: var(--figma-color-text-onbrand);
+	  color: var(--figma-color-bg-success);
+	}
+
+	.step-indicator:not(.active):not(.completed) {
+	  background-color: var(--figma-color-bg);
+	  color: var(--figma-color-text-secondary);
+	}
+
+	.step-indicator:not(.active):not(.completed) span:first-child {
+	  background-color: var(--figma-color-bg-secondary);
+	  color: var(--figma-color-text-secondary);
+	}
+
+	.step-indicator:hover:not(.active) {
+	  background-color: var(--figma-color-bg-hover);
+	  color: var(--figma-color-text);
+	}
+
+	.step-indicator:hover:not(.active) span:first-child {
+	  background-color: var(--figma-color-bg);
+	  color: var(--figma-color-text);
+	}
+
+	.step-content {
+	  display: none;
+	  flex: 1;
+	  overflow: hidden;
+	}
+
+	.step-content.active {
+	  display: flex;
+	  flex-direction: column;
+	}
+
+	.step-actions {
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	  margin-top: var(--spacing);
+	  padding-top: var(--spacing);
+	  border-top: 1px solid var(--figma-color-border);
+	  flex-shrink: 0;
+	}
+
+	.step-button {
+	  padding: calc(var(--spacing) / 2) var(--spacing);
+	  border-radius: 4px;
+	  font-weight: 500;
+	  cursor: pointer;
+	  border: none;
+	  transition: all 0.2s;
+	}
+
+	.step-button.primary {
+	  background-color: var(--figma-color-bg-brand);
+	  color: var(--figma-color-text-onbrand);
+	}
+
+	.step-button.primary:hover {
+	  background-color: var(--figma-color-bg-brand-hover);
+	}
+
+	.step-button.secondary {
+	  background-color: var(--figma-color-bg-secondary);
+	  color: var(--figma-color-text);
+	}
+
+	.step-button.secondary:hover {
+	  background-color: var(--figma-color-bg-hover);
+	}
+
+	.step-button:disabled {
+	  background-color: var(--figma-color-bg-disabled);
+	  color: var(--figma-color-text-disabled);
+	  cursor: not-allowed;
+	}
+
+	.step-summary {
+	  background-color: var(--figma-color-bg-secondary);
+	  padding: calc(var(--spacing) / 2);
+	  border-radius: 4px;
+	  margin-bottom: var(--spacing);
+	  font-size: 0.9rem;
+	  color: var(--figma-color-text-secondary);
+	  flex-shrink: 0;
+	}
+
+	.collection-summary {
+	  display: flex;
+	  flex-wrap: wrap;
+	  gap: calc(var(--spacing) / 4);
+	  margin-top: calc(var(--spacing) / 2);
+	}
+
+	.collection-tag {
+	  background-color: var(--figma-color-bg);
+	  color: var(--figma-color-text);
+	  padding: calc(var(--spacing) / 4) calc(var(--spacing) / 2);
+	  border-radius: 12px;
+	  font-size: 0.8rem;
+	  border: 1px solid var(--figma-color-border);
+	}
+
+	#color-collections-container {
+	  flex: 1;
+	  overflow-y: auto;
+	  min-height: 0;
+	}
+
 	.color-grid {
 	  display: grid;
 	  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 	  gap: var(--spacing);
+	  margin-bottom: var(--spacing);
 	}
 
 	.color-collection {
 	  margin-bottom: calc(var(--spacing) * 1.5);
+	  flex-shrink: 0;
+	}
+
+	.color-collection:last-child {
+	  margin-bottom: 0;
 	}
 
 	.collection-header {
@@ -483,20 +671,150 @@
 	  margin-bottom: var(--spacing);
 	  font-size: 0.9rem;
 	  color: var(--figma-color-text-secondary);
+	  flex-shrink: 0;
+	}
+
+	.collections-section {
+	  background-color: var(--figma-color-bg-secondary);
+	  padding: var(--spacing);
+	  border-radius: 4px;
+	  margin-bottom: var(--spacing);
+	  flex: 1;
+	  display: flex;
+	  flex-direction: column;
+	  min-height: 0;
+	}
+
+	.collections-label {
+	  display: block;
+	  font-size: 0.9rem;
+	  font-weight: bold;
+	  margin-bottom: calc(var(--spacing) / 2);
+	  color: var(--figma-color-text);
+	  flex-shrink: 0;
+	}
+
+	.collections-container {
+	  flex: 1;
+	  overflow-y: auto;
+	  margin-bottom: calc(var(--spacing) / 2);
+	  min-height: 0;
+	}
+
+  .collections-group {
+    margin-bottom: var(--spacing);
+  }
+
+  .collections-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .collections-group-title {
+    font-weight: 600;
+    color: var(--figma-color-text);
+    margin: 0 0 calc(var(--spacing) / 2) 0;
+    font-size: 0.95rem;
+  }
+
+	.loading-collections {
+	  color: var(--figma-color-text-secondary);
+	  font-style: italic;
+	  text-align: center;
+	  padding: var(--spacing);
+	  flex-shrink: 0;
+	}
+
+	.collection-item {
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 2);
+	  padding: calc(var(--spacing) / 2);
+	  border: 1px solid var(--figma-color-border);
+	  border-radius: 4px;
+	  margin-bottom: calc(var(--spacing) / 2);
+	  cursor: pointer;
+	  transition: background-color 0.2s;
+	  flex-shrink: 0;
+	}
+
+	.collection-item:last-child {
+	  margin-bottom: 0;
+	}
+
+	.collection-item:hover {
+	  background-color: var(--figma-color-bg-hover);
+	}
+
+	.collection-item.selected {
+	  background-color: var(--figma-color-bg-selected);
+	  border-color: var(--figma-color-border-selected);
+	}
+
+	.collection-info {
+	  flex: 1;
+	  min-width: 0;
+	}
+
+	.collection-name {
+	  font-weight: 500;
+	  font-size: 0.9rem;
+	  margin-bottom: 2px;
+	}
+
+	.collection-details {
+	  font-size: 0.8rem;
+	  color: var(--figma-color-text-secondary);
+	}
+
+	.collection-checkbox {
+	  flex-shrink: 0;
+	}
+
+	.collections-actions {
+	  display: flex;
+	  gap: calc(var(--spacing) / 2);
+	  flex-shrink: 0;
+	}
+
+	.wordpress-settings {
+	  border-left: 3px solid var(--figma-color-bg-brand);
+	}
+
+	.wordpress-settings-badge {
+	  background-color: var(--figma-color-bg-brand);
+	  color: var(--figma-color-text-onbrand);
+	  padding: 2px 6px;
+	  border-radius: 10px;
+	  font-size: 0.7rem;
+	  font-weight: bold;
+	  margin-left: calc(var(--spacing) / 2);
+	}
+
+	.wordpress-settings-color {
+	  border-left: 3px solid var(--figma-color-bg-brand);
+	}
+
+	.wordpress-settings-color .color-slug {
+	  color: var(--figma-color-text-secondary);
 	}
   </style>
-  <main>
-	<div class="info-text">
-	  Export your Figma variables as WordPress theme.json format. Variables will be placed in the "settings.custom" section.
-	  <div class="features">
-		<strong>Features:</strong>
-		<ul>
-		  <li>All variables placed under settings.custom</li>
-		  <li>Variable references converted to WordPress CSS custom properties format</li>
-		  <li>CamelCase names converted to kebab-case following WordPress conventions</li>
-		</ul>
-	  </div>
+    <main>
+	<!-- Step Navigation -->
+	<div class="step-navigation">
+		<div class="step-indicator active" data-step="1">
+			<span>1</span>
+			<span>Collections</span>
+		</div>
+		<div class="step-indicator" data-step="2">
+			<span>2</span>
+			<span>Configure</span>
+		</div>
+		<div class="step-indicator" data-step="3">
+			<span>3</span>
+			<span>Export</span>
+		</div>
 	</div>
+
 	
 	<div class="options">
 	  <div class="option-row">
@@ -520,47 +838,151 @@
 		<label for="generate-spacing-presets">Generate spacing presets from spacing variables</label>
 	  </div>
 
-	  <div class="option-row">
-		<input type="checkbox" id="use-rem" />
-		<label for="use-rem">Use rem units instead of px</label>
-	  </div>
-	  <div class="rem-collections" id="rem-collections" style="display: none; margin-left: 20px; margin-top: 8px;">
-		<div class="option-row">
-		  <input type="checkbox" id="rem-font" />
-		  <label for="rem-font">Apply to Font/Typography variables</label>
+	<!-- Step 1: Collection Selection -->
+	<div class="step-content active" id="step-1">
+		<div class="info-text">
+			Select which collections you want to include in your WordPress theme export.
+			<br><br>
+			<strong>WordPress Settings Collections:</strong> Collections named "wordpress.settings.*" will be included in the WordPress color palette for the block editor.
 		</div>
-		<div class="option-row">
-		  <input type="checkbox" id="rem-primitives" />
-		  <label for="rem-primitives">Apply to Primitives collection</label>
-		</div>
-		<div class="option-row">
-		  <input type="checkbox" id="rem-spacing" />
-		  <label for="rem-spacing">Apply to Spacing variables</label>
-		</div>
-	  </div>
 
-	  <div class="file-upload">
-		<label class="file-upload-label">Base theme.json</label>
-		<div class="file-upload-row">
-			<input type="file" id="base-theme" accept=".json" style="display: none;" />
-			<button type="button" class="file-upload-button" id="upload-button">Choose File</button>
-			<div class="file-upload-name" id="file-name">No file chosen</div>
-			<button type="button" class="file-upload-clear" id="clear-file" style="display: none;">Clear</button>
+		<div class="collections-section">
+			<label class="collections-label">Select Collections to Export</label>
+			<div class="collections-container" id="collections-container">
+				<div class="loading-collections">Loading collections...</div>
+			</div>
+			<div class="collections-actions">
+				<button type="button" class="copy-button" id="select-all-collections">Select All</button>
+				<button type="button" class="copy-button" id="select-none-collections">Select None</button>
+			</div>
 		</div>
-		<div class="file-upload-info">
-			Upload an existing theme.json file to merge the exported variables into it.
+
+		<div class="step-actions">
+			<div></div>
+			<button type="button" class="step-button primary" id="next-to-step-2" disabled>Next: Configure Export</button>
 		</div>
-	  </div>
 	</div>
-	
-	<div class="button-row">
-	  <button id="export" type="button">Export Variables</button>
-	  <button id="download" type="button">Download theme.json</button>
+
+	<!-- Step 2: Configuration -->
+	<div class="step-content" id="step-2">
+		<div class="step-summary" id="step-2-summary">
+			<strong>Selected Collections:</strong>
+			<div class="collection-summary" id="selected-collections-summary">
+				Loading...
+			</div>
+		</div>
+
+		<div class="info-text">
+			Configure what you want to export from your selected collections.
+		</div>
+
+        <div class="options">
+            <!-- Color options group -->
+            <div class="options-group" id="color-options">
+                <h4 class="collections-group-title">Color options</h4>
+                <!-- Elements color export mode -->
+                <div class="option-row">
+                    <label for="elements-color-mode" style="margin-right: 8px;">Elements color export:</label>
+                    <select id="elements-color-mode">
+                        <option value="value">Use color values</option>
+                        <option value="preset" selected>Use palette preset references</option>
+                    </select>
+                </div>
+                <div class="option-row" id="color-presets-row">
+                    <input type="checkbox" id="generate-color-presets" />
+                    <label for="generate-color-presets">Generate color presets from color variables</label>
+                    <button type="button" class="customize-button" id="customize-colors" disabled>Customize</button>
+                </div>
+                <div class="info-text" id="color-presets-note" style="font-size: 0.8rem; margin-top: calc(var(--spacing) / 4); display: none;">
+                    <i>Using <code>wp.settings.colors</code> collection. Color presets will be derived from that collection.</i>
+                </div>
+                <div class="info-text" style="font-size: 0.8rem; margin-top: calc(var(--spacing) / 4);">
+                    <i>Color customization will only show colors from your selected collections.</i>
+                </div>
+            </div>
+
+            <!-- Spacing & units group -->
+            <div class="options-group" id="spacing-units-options">
+                <h4 class="collections-group-title">Spacing & units</h4>
+                <div class="option-row">
+                    <input type="checkbox" id="generate-spacing-presets" />
+                    <label for="generate-spacing-presets">Generate spacing presets from spacing variables</label>
+                </div>
+                <div class="option-row">
+                    <input type="checkbox" id="use-rem" />
+                    <label for="use-rem">Use rem units instead of px</label>
+                </div>
+                <div class="rem-collections" id="rem-collections" style="display: none; margin-left: 20px; margin-top: 8px;">
+                    <div class="option-row">
+                        <input type="checkbox" id="rem-font" />
+                        <label for="rem-font">Apply to Font/Typography variables</label>
+                    </div>
+                    <div class="option-row">
+                        <input type="checkbox" id="rem-primitives" />
+                        <label for="rem-primitives">Apply to Primitives collection</label>
+                    </div>
+                    <div class="option-row">
+                        <input type="checkbox" id="rem-spacing" />
+                        <label for="rem-spacing">Apply to Spacing variables</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typography group -->
+            <div class="options-group" id="typography-options">
+                <h4 class="collections-group-title">Typography</h4>
+                <div class="option-row">
+                    <input type="checkbox" id="generate-typography" />
+                    <label for="generate-typography">Generate typography presets from text styles <em>(10up tooling)</em></label>
+                </div>
+            </div>
+
+            <div class="file-upload">
+				<label class="file-upload-label">Base theme.json</label>
+				<div class="file-upload-row">
+					<input type="file" id="base-theme" accept=".json" style="display: none;" />
+					<button type="button" class="file-upload-button" id="upload-button">Choose File</button>
+					<div class="file-upload-name" id="file-name">No file chosen</div>
+					<button type="button" class="file-upload-clear" id="clear-file" style="display: none;">Clear</button>
+				</div>
+				<div class="file-upload-info">
+					Upload an existing theme.json file to merge the exported variables into it.
+				</div>
+			</div>
+		</div>
+
+		<div class="step-actions">
+			<button type="button" class="step-button secondary" id="back-to-step-1">Back</button>
+			<button type="button" class="step-button primary" id="next-to-step-3">Next: Export</button>
+		</div>
 	</div>
-	<div id="files-container">
-	  <div class="empty-state">
-		Click "Export Variables" to generate WordPress theme files from your Figma variables.
-	  </div>
+
+	<!-- Step 3: Export -->
+	<div class="step-content" id="step-3">
+		<div class="step-summary" id="step-3-summary">
+			<strong>Export Summary:</strong>
+			<div id="export-summary">
+				Loading...
+			</div>
+		</div>
+
+		<div class="info-text">
+			Review your export configuration and generate your WordPress theme files.
+		</div>
+
+		<div class="button-row">
+			<button id="export" type="button">Export Variables</button>
+			<button id="download" type="button">Download theme.json</button>
+		</div>
+		<div id="files-container">
+			<div class="empty-state">
+				Click "Export Variables" to generate WordPress theme files from your Figma variables.
+			</div>
+		</div>
+
+		<div class="step-actions">
+			<button type="button" class="step-button secondary" id="back-to-step-2">Back</button>
+		</div>
 	</div>
   </main>
   <div class="resize-handle" id="resize-handle"></div>
@@ -570,7 +992,7 @@
   <div class="modal-overlay" id="color-modal-overlay">
 	<div class="modal">
 	  <div class="modal-header">
-		<h3 class="modal-title">Customize Color Presets</h3>
+		<h3 class="modal-title">Customize Color Presets (Selected Collections)</h3>
 		<button class="modal-close" id="close-color-modal">&times;</button>
 	  </div>
 	  <div class="modal-body">
@@ -595,6 +1017,9 @@
 	let baseTheme = null;
 	let allColorPresets = [];
 	let selectedColorIds = [];
+	let allCollections = [];
+	let selectedCollectionIds = [];
+	let currentStep = 1;
 
 	// Setup resize functionality
 	const resizeHandle = document.getElementById('resize-handle');
@@ -651,7 +1076,15 @@
 	}
 
 	window.onmessage = ({ data: { pluginMessage } }) => {
-	  if (pluginMessage.type === "COLOR_PRESETS_RESULT") {
+	  if (pluginMessage.type === "COLLECTIONS_RESULT") {
+		if (pluginMessage.error) {
+		  console.error("Error getting collections:", pluginMessage.error);
+		  return;
+		}
+		
+		allCollections = pluginMessage.collections || [];
+		populateCollections();
+	  } else if (pluginMessage.type === "COLOR_PRESETS_RESULT") {
 		if (pluginMessage.error) {
 		  console.error("Error getting color presets:", pluginMessage.error);
 		  return;
@@ -782,11 +1215,30 @@
 
 	document.getElementById("export").addEventListener("click", () => {
 	  // Get the state of the checkboxes
-	  const generateTypography = document.getElementById("generate-typography").checked;
-	  const generateWordPressTypography = document.getElementById("generate-wordpress-typography").checked;
-	  const generateColorPresets = document.getElementById("generate-color-presets").checked;
+      const generateTypography = document.getElementById("generate-typography").checked;
+      const generateColorPresetsCheckbox = document.getElementById("generate-color-presets");
+      const generateColorPresets = generateColorPresetsCheckbox.checked;
+
 	  const generateSpacingPresets = document.getElementById("generate-spacing-presets").checked;
 	  const useRem = document.getElementById("use-rem").checked;
+	  const elementsColorModeSelect = document.getElementById("elements-color-mode");
+	  const elementsColorExportMode = elementsColorModeSelect ? elementsColorModeSelect.value : "value";
+
+      // Determine if wp.settings.colors is selected
+      const wpSettingsColorsSelected = allCollections
+        .filter(c => /^wp\.settings\.colors?/i.test(c.name))
+        .some(c => selectedCollectionIds.includes(c.id));
+
+      // Auto-enable color presets generation if wp.settings.colors is selected
+      // or if elements are referencing palette presets
+      const shouldGenerateColorPresets = generateColorPresets || wpSettingsColorsSelected || elementsColorExportMode === 'preset';
+
+      // If presets are auto-enabled due to wp.settings.colors or preset references,
+      // but the selection UI is hidden, pass undefined to export all relevant colors
+      const colorPresetsRow = document.getElementById('color-presets-row');
+      const selectedColorsForExport = shouldGenerateColorPresets
+        ? (colorPresetsRow && colorPresetsRow.style.display === 'none' ? undefined : (selectedColorIds.length ? selectedColorIds : undefined))
+        : undefined;
 	  
 	  // Get rem collection options if rem is enabled
 	  const remCollections = useRem ? {
@@ -801,13 +1253,14 @@
 		  type: "EXPORT",
 		  options: {
 			generateTypography,
-			generateWordPressTypography,
-			generateColorPresets,
+      generateColorPresets: shouldGenerateColorPresets,
 			generateSpacingPresets,
 			baseTheme,
-			selectedColors: generateColorPresets ? selectedColorIds : undefined,
+            selectedColors: selectedColorsForExport,
+			selectedCollections: selectedCollectionIds.length > 0 ? selectedCollectionIds : undefined,
 			useRem,
-			remCollections
+			remCollections,
+			elementsColorExportMode
 		  }
 		} 
 	  }, "*");
@@ -874,13 +1327,52 @@
 	const selectNoneButton = document.getElementById("select-none-colors");
 	const applySelectionButton = document.getElementById("apply-color-selection");
 
-	// Enable/disable customize button based on checkbox state
+	// Enable/disable customize button based on checkbox state and collection selection
+	function updateColorCustomizeButton() {
+		const isColorPresetsEnabled = colorPresetsCheckbox.checked;
+		const hasSelectedCollections = selectedCollectionIds.length > 0;
+    customizeButton.disabled = !isColorPresetsEnabled || !hasSelectedCollections;
+
+    // If wp.settings.colors is selected, we can hide the explicit toggle and show info
+    const wpSettingsColorsSelected = allCollections
+      .filter(c => /^wp\.settings\.colors?/i.test(c.name))
+      .some(c => selectedCollectionIds.includes(c.id));
+
+    const colorPresetsRow = document.getElementById('color-presets-row');
+    const colorPresetsNote = document.getElementById('color-presets-note');
+    if (wpSettingsColorsSelected) {
+      // Hide the presets toggle and show note
+      colorPresetsRow.style.display = 'none';
+      colorPresetsNote.style.display = 'block';
+      // When hidden, implicitly treat as enabled for export fallback logic
+      colorPresetsCheckbox.checked = true;
+    } else {
+      colorPresetsRow.style.display = 'flex';
+      colorPresetsNote.style.display = 'none';
+    }
+	}
+
 	colorPresetsCheckbox.addEventListener("change", () => {
-	  customizeButton.disabled = !colorPresetsCheckbox.checked;
-	  if (!colorPresetsCheckbox.checked) {
-		selectedColorIds = [];
-	  }
+		updateColorCustomizeButton();
+		if (!colorPresetsCheckbox.checked) {
+			selectedColorIds = [];
+		}
 	});
+
+	// Update color customize button when collections change
+	function updateCollectionSelection() {
+		const collectionItems = document.querySelectorAll(".collection-item");
+		collectionItems.forEach(item => {
+			const collectionId = item.dataset.collectionId;
+			const checkbox = item.querySelector(".collection-checkbox");
+			const isSelected = selectedCollectionIds.includes(collectionId);
+			
+			checkbox.checked = isSelected;
+			item.classList.toggle("selected", isSelected);
+		});
+		updateNextButtonState();
+		updateColorCustomizeButton();
+	}
 
 	// Handle rem options visibility
 	const useRemCheckbox = document.getElementById("use-rem");
@@ -900,15 +1392,21 @@
 
 	// Open modal and load color presets
 	customizeButton.addEventListener("click", () => {
-	  colorModal.style.display = "flex";
-	  if (allColorPresets.length === 0) {
-		// Request color presets from the plugin
-		parent.postMessage({ 
-		  pluginMessage: { type: "GET_COLOR_PRESETS" } 
-		}, "*");
-	  } else {
-		populateColorModal();
+	  if (selectedCollectionIds.length === 0) {
+		alert("Please select at least one collection first before customizing colors.");
+		return;
 	  }
+	  
+	  colorModal.style.display = "flex";
+	  // Always request fresh color presets with current selected collections
+	  parent.postMessage({ 
+		pluginMessage: { 
+		  type: "GET_COLOR_PRESETS",
+		  options: {
+			selectedCollectionIds: selectedCollectionIds
+		  }
+		} 
+	  }, "*");
 	});
 
 	// Close modal
@@ -947,7 +1445,7 @@
 	  container.innerHTML = "";
 
 	  if (allColorPresets.length === 0) {
-		container.innerHTML = '<div class="empty-state">No color variables found in your Figma file.</div>';
+		container.innerHTML = '<div class="empty-state">No color variables found in the selected collections. Try selecting different collections or ensure your collections contain color variables.</div>';
 		return;
 	  }
 
@@ -1005,6 +1503,11 @@
 	  const item = document.createElement("div");
 	  item.className = "color-item";
 	  item.dataset.colorId = preset.id;
+
+	  // Add WordPress settings indicator
+	  if (preset.isWordPressSettings) {
+		item.classList.add("wordpress-settings-color");
+	  }
 
 	  const preview = document.createElement("div");
 	  preview.className = "color-preview";
@@ -1078,13 +1581,17 @@
 	  const summary = document.getElementById("selection-summary");
 	  const total = allColorPresets.length;
 	  const selected = selectedColorIds.length;
+	  const wpSettingsColors = allColorPresets.filter(preset => preset.isWordPressSettings).length;
+	  const regularColors = total - wpSettingsColors;
 	  
 	  if (total === 0) {
-		summary.textContent = "No colors available";
-	  } else if (selected === total) {
-		summary.textContent = `All ${total} colors selected`;
+		summary.textContent = "No colors available in selected collections";
 	  } else {
-		summary.textContent = `${selected} of ${total} colors selected`;
+		let summaryText = `${selected} of ${total} colors selected`;
+		if (wpSettingsColors > 0) {
+		  summaryText += ` (${wpSettingsColors} WordPress settings colors will be in the color palette)`;
+		}
+		summary.textContent = summaryText;
 	  }
 	}
 
@@ -1110,4 +1617,249 @@
 	  updateColorSelection();
 	  updateSelectionSummary();
 	}
+
+	// Collection functionality
+	function populateCollections() {
+	  const container = document.getElementById("collections-container");
+	  container.innerHTML = "";
+
+	  if (allCollections.length === 0) {
+		container.innerHTML = '<div class="loading-collections">No collections found in your Figma file.</div>';
+		return;
+	  }
+
+    // Group collections by wp.* prefix
+    const wpCollections = allCollections.filter(c => /^wp\./i.test(c.name));
+    const otherCollections = allCollections.filter(c => !/^wp\./i.test(c.name));
+
+    // If no collections are selected yet, default-select ONLY wp.* collections
+    if (selectedCollectionIds.length === 0) {
+      selectedCollectionIds = wpCollections.map(c => c.id);
+    }
+
+    const groups = [
+      { title: 'WordPress collections (wp.*)', items: wpCollections },
+      { title: 'Other collections', items: otherCollections }
+    ];
+
+    groups.forEach(group => {
+      if (group.items.length === 0) return;
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'collections-group';
+
+      const title = document.createElement('h4');
+      title.className = 'collections-group-title';
+      title.textContent = group.title;
+      groupDiv.appendChild(title);
+
+      group.items.forEach(collection => {
+        const collectionItem = createCollectionItem(collection);
+        groupDiv.appendChild(collectionItem);
+      });
+
+      container.appendChild(groupDiv);
+    });
+
+    updateCollectionSelection();
+    updateNextButtonState();
+	}
+
+	function createCollectionItem(collection) {
+	  const item = document.createElement("div");
+	  item.className = "collection-item";
+	  item.dataset.collectionId = collection.id;
+
+	  // Check if this is a WordPress settings collection
+	  const isWordPressSettings = /^wp\.settings\./i.test(collection.name);
+	  if (isWordPressSettings) {
+		item.classList.add("wordpress-settings");
+	  }
+
+	  const info = document.createElement("div");
+	  info.className = "collection-info";
+
+	  const name = document.createElement("div");
+	  name.className = "collection-name";
+	  name.textContent = collection.name;
+
+	  const details = document.createElement("div");
+	  details.className = "collection-details";
+	  details.textContent = `${collection.variableCount} variables, ${collection.modeCount} mode${collection.modeCount !== 1 ? 's' : ''}`;
+	  if (isWordPressSettings) {
+		details.innerHTML += ' <span class="wordpress-settings-badge">WordPress Settings</span>';
+	  }
+
+	  info.appendChild(name);
+	  info.appendChild(details);
+
+	  const checkbox = document.createElement("input");
+	  checkbox.type = "checkbox";
+	  checkbox.className = "collection-checkbox";
+	  checkbox.checked = selectedCollectionIds.includes(collection.id);
+	  checkbox.addEventListener("change", () => {
+		if (checkbox.checked) {
+		  if (!selectedCollectionIds.includes(collection.id)) {
+			selectedCollectionIds.push(collection.id);
+		  }
+		} else {
+		  selectedCollectionIds = selectedCollectionIds.filter(id => id !== collection.id);
+		}
+		updateCollectionSelection();
+	  });
+
+	  item.appendChild(info);
+	  item.appendChild(checkbox);
+
+	  // Make the whole item clickable
+	  item.addEventListener("click", (e) => {
+		if (e.target !== checkbox) {
+		  checkbox.checked = !checkbox.checked;
+		  checkbox.dispatchEvent(new Event("change"));
+		}
+	  });
+
+	  return item;
+	}
+
+	// Collection action buttons
+  document.getElementById("select-all-collections").addEventListener("click", () => {
+    selectedCollectionIds = allCollections.map(collection => collection.id);
+    updateCollectionSelection();
+  });
+
+  document.getElementById("select-none-collections").addEventListener("click", () => {
+    // Deselect all
+    selectedCollectionIds = [];
+    updateCollectionSelection();
+  });
+
+	// Step navigation functionality
+	function showStep(stepNumber) {
+		// Hide all step content
+		document.querySelectorAll('.step-content').forEach(content => {
+			content.classList.remove('active');
+		});
+
+		// Show the target step content
+		const targetStep = document.getElementById(`step-${stepNumber}`);
+		if (targetStep) {
+			targetStep.classList.add('active');
+		}
+
+		// Update step indicators
+		document.querySelectorAll('.step-indicator').forEach(indicator => {
+			indicator.classList.remove('active', 'completed');
+			const indicatorStep = parseInt(indicator.dataset.step);
+			
+			if (indicatorStep === stepNumber) {
+				indicator.classList.add('active');
+			} else if (indicatorStep < stepNumber) {
+				indicator.classList.add('completed');
+			}
+		});
+
+		currentStep = stepNumber;
+		updateStepSummaries();
+	}
+
+	function updateStepSummaries() {
+		// Update step 2 summary
+		if (currentStep >= 2) {
+			updateStep2Summary();
+		}
+
+		// Update step 3 summary
+		if (currentStep >= 3) {
+			updateStep3Summary();
+		}
+	}
+
+	function updateStep2Summary() {
+		const summary = document.getElementById('selected-collections-summary');
+		if (selectedCollectionIds.length === 0) {
+			summary.innerHTML = '<span style="color: var(--figma-color-text-disabled);">No collections selected</span>';
+			return;
+		}
+
+		const selectedCollections = allCollections.filter(collection => 
+			selectedCollectionIds.includes(collection.id)
+		);
+
+		summary.innerHTML = selectedCollections.map(collection => 
+			`<span class="collection-tag">${collection.name}</span>`
+		).join('');
+	}
+
+	function updateStep3Summary() {
+		const summary = document.getElementById('export-summary');
+		const selectedCollections = allCollections.filter(collection => 
+			selectedCollectionIds.includes(collection.id)
+		);
+
+		const generateTypography = document.getElementById("generate-typography").checked;
+		const generateColorPresets = document.getElementById("generate-color-presets").checked;
+		const generateSpacingPresets = document.getElementById("generate-spacing-presets").checked;
+		const useRem = document.getElementById("use-rem").checked;
+
+		let summaryText = [];
+		summaryText.push(`${selectedCollections.length} collection${selectedCollections.length !== 1 ? 's' : ''} selected`);
+
+		if (generateTypography) summaryText.push('Typography presets');
+		if (generateColorPresets) summaryText.push('Color presets');
+		if (generateSpacingPresets) summaryText.push('Spacing presets');
+		if (useRem) summaryText.push('Rem units enabled');
+
+		summary.innerHTML = summaryText.join(' • ');
+	}
+
+	// Step navigation event listeners
+	document.getElementById('next-to-step-2').addEventListener('click', () => {
+		if (selectedCollectionIds.length > 0) {
+			showStep(2);
+		}
+	});
+
+	document.getElementById('next-to-step-3').addEventListener('click', () => {
+		showStep(3);
+	});
+
+	document.getElementById('back-to-step-1').addEventListener('click', () => {
+		showStep(1);
+	});
+
+	document.getElementById('back-to-step-2').addEventListener('click', () => {
+		showStep(2);
+	});
+
+	// Step indicator click handlers
+	document.querySelectorAll('.step-indicator').forEach(indicator => {
+		indicator.addEventListener('click', () => {
+			const stepNumber = parseInt(indicator.dataset.step);
+			
+			// Only allow navigation to completed steps or the next step
+			if (stepNumber <= currentStep + 1) {
+				showStep(stepNumber);
+			}
+		});
+	});
+
+	// Update next button state based on collection selection
+	function updateNextButtonState() {
+		const nextButton = document.getElementById('next-to-step-2');
+		nextButton.disabled = selectedCollectionIds.length === 0;
+	}
+
+	// Configuration option change listeners
+	document.getElementById("generate-typography").addEventListener("change", updateStep3Summary);
+	document.getElementById("generate-color-presets").addEventListener("change", updateStep3Summary);
+	document.getElementById("generate-spacing-presets").addEventListener("change", updateStep3Summary);
+	document.getElementById("use-rem").addEventListener("change", updateStep3Summary);
+
+	// Load collections on page load
+	document.addEventListener("DOMContentLoaded", () => {
+		// Request collections from the plugin
+		parent.postMessage({ 
+			pluginMessage: { type: "GET_COLLECTIONS" } 
+		}, "*");
+	});
   </script>
