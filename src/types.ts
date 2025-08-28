@@ -22,6 +22,13 @@ export interface ExportOptions {
 	 * - "preset" → export WordPress palette references (e.g., "var:preset|color|primary").
 	 */
 	elementsColorExportMode?: "value" | "preset";
+
+	/**
+	 * When true, routes collection processing through the new modular
+	 * collections registry (wp.*-first approach). When false, uses a
+	 * generic legacy-style merge into settings.custom.
+	 */
+	useCollectionsRegistry?: boolean;
 }
 
 // TypeScript interface for Figma Variable Collection Mode

@@ -32,8 +32,8 @@ describe('getColorPresets', () => {
 	});
 
 	it('should generate color presets from color variables', async () => {
-		const mockColorCollection = {
-			name: 'Color',
+        const mockColorCollection = {
+            name: 'wp.settings.colors',
 			modes: [{ modeId: 'mode1', name: 'Default' }],
 			variableIds: ['var1', 'var2'],
 		};
@@ -78,8 +78,8 @@ describe('getColorPresets', () => {
 	});
 
 	it('should handle both variable aliases and direct color values', async () => {
-		const mockColorCollection = {
-			name: 'Color',
+        const mockColorCollection = {
+            name: 'wp.settings.colors',
 			modes: [{ modeId: 'mode1', name: 'Default' }],
 			variableIds: ['var1', 'var2'],
 		};
@@ -133,8 +133,8 @@ describe('getColorPresets', () => {
 	});
 
 	it('should skip non-color variables', async () => {
-		const mockColorCollection = {
-			name: 'Color',
+        const mockColorCollection = {
+            name: 'wp.settings.colors',
 			modes: [{ modeId: 'mode1', name: 'Default' }],
 			variableIds: ['var1', 'var2'],
 		};
@@ -177,8 +177,8 @@ describe('getColorPresets', () => {
 	});
 
 	it('should sort presets by name', async () => {
-		const mockColorCollection = {
-			name: 'Color',
+        const mockColorCollection = {
+            name: 'wp.settings.colors',
 			modes: [{ modeId: 'mode1', name: 'Default' }],
 			variableIds: ['var1', 'var2', 'var3'],
 		};
@@ -228,19 +228,19 @@ describe('getColorPresets', () => {
 	});
 
 	it('should exclude primitives collection but include other collections', async () => {
-		const mockCollections = [
+        const mockCollections = [
 			{
-				name: 'Primitives',
+                name: 'Primitives',
 				modes: [{ modeId: 'mode1', name: 'Default' }],
 				variableIds: ['var1'],
 			},
 			{
-				name: 'Color',
+                name: 'wp.settings.colors',
 				modes: [{ modeId: 'mode2', name: 'Default' }],
 				variableIds: ['var2'],
 			},
 			{
-				name: 'Brand',
+                name: 'wp.settings.brand',
 				modes: [{ modeId: 'mode3', name: 'Default' }],
 				variableIds: ['var3'],
 			}
@@ -297,8 +297,8 @@ describe('getColorPresets', () => {
 	});
 
 	it('should filter colors by selectedColorIds when provided', async () => {
-		const mockColorCollection = {
-			name: 'Color',
+        const mockColorCollection = {
+            name: 'wp.settings.colors',
 			modes: [{ modeId: 'mode1', name: 'Default' }],
 			variableIds: ['var1', 'var2', 'var3'],
 		};
@@ -385,9 +385,9 @@ describe('getAllColorPresets', () => {
 	});
 
 	it('should get all color presets with resolved colors', async () => {
-		mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue([
-			{
-				name: 'Colors',
+        mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue([
+            {
+                name: 'wp.settings.colors',
 				modes: [{ modeId: 'mode1', name: 'Default' }],
 				variableIds: ['var1', 'var2']
 			}
@@ -418,35 +418,37 @@ describe('getAllColorPresets', () => {
 
 		const result = await getAllColorPresets();
 
-		expect(result).toEqual([
+        expect(result).toEqual([
 			{
 				id: 'var1',
 				name: 'Primary',
 				slug: 'primary',
 				color: 'var(--wp--custom--color--primary)',
-				collectionName: 'Colors',
+                collectionName: 'wp.settings.colors',
 				resolvedColor: '#ff0000'
+            , isWordPressSettings: true
 			},
 			{
 				id: 'var2',
 				name: 'Secondary',
 				slug: 'secondary',
 				color: 'var(--wp--custom--color--secondary)',
-				collectionName: 'Colors',
+                collectionName: 'wp.settings.colors',
 				resolvedColor: '#ff0000'
+            , isWordPressSettings: true
 			}
 		]);
 	});
 
 	it('should skip collections with no modes in getAllColorPresets', async () => {
-		mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue([
-			{
-				name: 'Colors',
+        mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue([
+            {
+                name: 'wp.settings.colors',
 				modes: [], // No modes
 				variableIds: ['var1']
 			},
-			{
-				name: 'Valid Colors',
+            {
+                name: 'wp.settings.valid colors',
 				modes: [{ modeId: 'mode1', name: 'Default' }],
 				variableIds: ['var2']
 			}
@@ -463,21 +465,22 @@ describe('getAllColorPresets', () => {
 
 		const result = await getAllColorPresets();
 
-		expect(result).toEqual([
+        expect(result).toEqual([
 			{
 				id: 'var2',
 				name: 'Valid',
 				slug: 'valid',
 				color: 'var(--wp--custom--color--valid)',
-				collectionName: 'Valid Colors',
+                collectionName: 'wp.settings.valid colors',
 				resolvedColor: '#00ff00'
+            , isWordPressSettings: true
 			}
 		]);
 	});
 
 	it('should return color presets with collection info and resolved colors', async () => {
-		const mockColorCollection = {
-			name: 'Color',
+        const mockColorCollection = {
+            name: 'wp.settings.color',
 			modes: [{ modeId: 'mode1', name: 'Default' }],
 			variableIds: ['var1', 'var2'],
 		};
@@ -509,27 +512,29 @@ describe('getAllColorPresets', () => {
 		const result = await getAllColorPresets();
 
 		expect(result).toHaveLength(2);
-		expect(result[0]).toEqual({
+        expect(result[0]).toEqual({
 			id: 'var1',
 			name: 'Primary',
 			slug: 'primary',
 			color: 'var(--wp--custom--color--primary)',
-			collectionName: 'Color',
+            collectionName: 'wp.settings.color',
 			resolvedColor: '#ff0000'
+        , isWordPressSettings: true
 		});
-		expect(result[1]).toEqual({
+        expect(result[1]).toEqual({
 			id: 'var2',
 			name: 'Secondary Accent',
 			slug: 'secondary-accent',
 			color: 'var(--wp--custom--color--secondary--accent)',
-			collectionName: 'Color',
+            collectionName: 'wp.settings.color',
 			resolvedColor: '#00ff00'
+        , isWordPressSettings: true
 		});
 	});
 
 	it('should handle variable aliases and resolve their colors', async () => {
-		const mockColorCollection = {
-			name: 'Color',
+        const mockColorCollection = {
+            name: 'wp.settings.color',
 			modes: [{ modeId: 'mode1', name: 'Default' }],
 			variableIds: ['var1'],
 		};
@@ -561,25 +566,26 @@ describe('getAllColorPresets', () => {
 		const result = await getAllColorPresets();
 
 		expect(result).toHaveLength(1);
-		expect(result[0]).toEqual({
+        expect(result[0]).toEqual({
 			id: 'var1',
 			name: 'Alias Color',
 			slug: 'alias-color',
 			color: 'var(--wp--custom--color--alias-color)',
-			collectionName: 'Color',
+            collectionName: 'wp.settings.color',
 			resolvedColor: '#0000ff'
+        , isWordPressSettings: true
 		});
 	});
 
-	it('should sort by collection name then by color name', async () => {
-		const mockCollections = [
+  it('should sort by collection name then by color name', async () => {
+    const mockCollections = [
 			{
-				name: 'Brand',
+        name: 'wp.settings.brand',
 				modes: [{ modeId: 'mode1', name: 'Default' }],
 				variableIds: ['var1'],
 			},
 			{
-				name: 'Color',
+        name: 'wp.settings.color',
 				modes: [{ modeId: 'mode2', name: 'Default' }],
 				variableIds: ['var2'],
 			}
@@ -612,11 +618,11 @@ describe('getAllColorPresets', () => {
 
 		const result = await getAllColorPresets();
 
-		expect(result).toHaveLength(2);
-		// Should be sorted by collection name first (Brand comes before Color)
-		expect(result[0].collectionName).toBe('Brand');
-		expect(result[0].name).toBe('Zebra');
-		expect(result[1].collectionName).toBe('Color');
-		expect(result[1].name).toBe('Alpha');
+    expect(result).toHaveLength(2);
+    // Sorted by collection name (lexicographically on raw names)
+    expect(result[0].collectionName).toBe('wp.settings.brand');
+    expect(result[0].name).toBe('Zebra');
+    expect(result[1].collectionName).toBe('wp.settings.color');
+    expect(result[1].name).toBe('Alpha');
 	});
 }); 

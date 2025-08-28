@@ -1,6 +1,11 @@
 # Figma to WordPress theme.json Exporter
 
-[![Support Level](https://img.shields.io/badge/support-beta-blueviolet.svg)](#support-level) [![MIT License](https://img.shields.io/github/license/10up/10up-block-theme-json-export.svg)](https://github.com/10up/figma-to-wordpress-theme-json-exporter/blob/develop/LICENSE.md)
+This is a pretty major fork of the original 10up plugin. It is highly opinionated to the approach Linchpin takes to components being exported for our design systems and client websites
+
+The original 10up plugin may be a great base for your project or you can run with this one, however the baseline 10up one is more table and we have breaking changes
+in this experimental approach
+
+[![Support Level](https://img.shields.io/badge/support-beta-blueviolet.svg)](#support-level) [![MIT License](https://img.shields.io/github/license/linchpin/linchpin-block-theme-json-export.svg)](https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/blob/develop/LICENSE.md)
 
 > This Figma plugin converts Figma design tokens/variables into WordPress theme.json format, placing all variables under the `settings.custom` section according to WordPress standards.
 
@@ -16,7 +21,7 @@
 - Support for responsive/fluid variables
 - Automatic unit handling (px) for specific value types
 - Supports downloading the generated files as a zip package
-- **Typography presets** - Convert Figma text styles to WordPress typography presets *(10up tooling feature)*
+- **Typography presets** - Convert Figma text styles to WordPress typography presets
 - **Color presets** - Generate WordPress color palette from Figma color variables with customizable selection
 - **Spacing presets** - Create WordPress spacing presets from Figma spacing variables
 - Line height values converted from percentage to decimal format (e.g., 120% → 1.2)
@@ -46,7 +51,7 @@
    - All existing theme.json settings and styles will be preserved
    - New variables will be added under settings.custom
 
-3. **Typography Presets:** *(10up tooling feature)*
+3. **Typography Presets:**
    - Check "Generate typography presets from text styles"
    - The plugin will convert all local text styles in your Figma document
    - Typography presets are added to `settings.custom.typography.presets`
@@ -115,13 +120,76 @@ When uploading an existing theme.json file:
 - Other sections of the theme.json file remain untouched
 - Color modes and button styles are still exported as separate files
 
-### Special Collection Handling
+### Collection Processing Architecture
 
-The plugin provides special handling for certain Figma variable collections:
+The plugin uses a sophisticated processor-based architecture to handle different types of Figma variable collections. Each collection is processed by a specific processor based on its name and structure, ensuring optimal handling for different use cases.
+
+### Processor System
+
+The plugin employs a list of processors that are evaluated in sequence:
+
+1. **Primitives Processor** - Handles the "Primitives" collection as the base theme
+2. **WordPress Settings Colors Processor** - Processes color collections for palette generation
+3. **WordPress Settings Subset Processor** - Handles layout, spacing, typography, and shadow collections
+4. **WordPress Settings Processor** - Processes general WordPress settings collections
+5. **WordPress Elements Processor** - Handles element-specific "block" collections (buttons, headings, etc.)
+6. **Fallback Selected Processor** - Catches any remaining collections and adds them to custom settings
+
+### Collection Types and Processing
 
 #### Primitives Collection
 
-Variables from a collection named "Primitives" are used as the base theme and are always processed first.
+Variables from a collection named "Primitives" are used as the base theme and are always processed first:
+- Merged directly into `settings.custom` without a namespace
+- Serves as the foundation for all other custom variables
+- Always processed first in the processor chain
+
+#### WordPress Settings Collections
+
+Collections following the `wp.settings.*` naming convention are processed according to their specific type:
+
+**Color Collections (`wp.settings.color`)**
+- Intentionally NOT merged into `settings.custom`
+- Colors are surfaced via palette presets instead of custom variables
+- Button styles are extracted and processed separately
+
+**Subset Collections (`wp.settings.layout`, `wp.settings.spacing`, `wp.settings.typography`, `wp.settings.shadow`)**
+- Merged directly into the corresponding WordPress settings section
+- Example: `wp.settings.spacing` variables go into `settings.spacing`
+- Supports deep merging with existing settings
+
+**General Settings Collections (`wp.settings`)**
+- Known WordPress settings keys are merged into the appropriate sections
+- Unknown keys are placed under `settings.custom`
+- Supports both exact matches and nested paths
+
+#### WordPress Elements Collections
+
+Collections following the `wp.elements.*` naming convention:
+- Processed into `styles.elements` structure
+- Special handling for button elements with automatic style file generation
+- Supports nested element paths (e.g., `wp.elements.buttons` → `styles.elements.button`)
+
+#### Fallback Processing
+
+Any collection not matched by specific processors:
+- Automatically added to `settings.custom` with sanitized naming
+- Color-related properties are filtered out to prevent conflicts
+- Ensures all variables are captured regardless of naming conventions
+
+### Processing Order and Priority
+
+The processor system ensures that:
+- More specific processors run before general ones
+- WordPress-specific collections are handled appropriately
+- All collections are processed regardless of naming conventions
+- No variables are lost during the export process
+
+This architecture provides flexibility for different design system approaches while maintaining compatibility with WordPress theme.json standards.
+
+### Legacy Collection Handling
+
+For backward compatibility, the plugin also provides special handling for certain legacy collection names:
 
 #### Color Collection with Multiple Modes
 
@@ -146,7 +214,7 @@ The plugin can generate typography presets from Figma text styles:
 - Text decoration properties (color, style, thickness, offset) are properly handled
 - The plugin omits empty or invalid properties rather than using fallbacks to ensure clean output
 
-### Responsive/Fluid Variables *(10up tooling feature)*
+### Responsive/Fluid Variables
 
 If a collection has exactly two modes named "Desktop" and "Mobile", the plugin treats them as responsive variables:
 
@@ -289,7 +357,7 @@ The plugin will automatically transpile TypeScript to JavaScript.
 
 ## Changelog
 
-A complete listing of all notable changes to this project are documented in [CHANGELOG.md](https://github.com/10up/figma-to-wordpress-theme-json-exporter/blob/develop/CHANGELOG.md).
+A complete listing of all notable changes to this project are documented in [CHANGELOG.md](https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/blob/develop/CHANGELOG.md).
 
 ## Contributing with Changesets
 
@@ -328,11 +396,3 @@ When changesets are merged to the main branch:
 1. A "Release" pull request will be automatically created
 2. This PR will update the version number and changelog
 3. When the Release PR is merged, the package will be automatically published to npm
-
-## Contributing
-
-Please read [CODE_OF_CONDUCT.md](https://github.com/10up/figma-to-wordpress-theme-json-exporter/blob/develop/CODE_OF_CONDUCT.md) for details on our code of conduct, [CONTRIBUTING.md](https://github.com/10up/figma-to-wordpress-theme-json-exporter/blob/develop/CONTRIBUTING.md) for details on the process for submitting pull requests to us, and [CREDITS.md](https://github.com/10up/figma-to-wordpress-theme-json-exporter/blob/develop/CREDITS.md) for a listing of maintainers, contributors, and libraries for this project.
-
-## Like what you see?
-
-<a href="http://10up.com/contact/"><img src="https://fueled.com/wp-content/uploads/2025/06/10up-github-banner.webp" alt="Work with the 10up WordPress Practice at Fueled"></a>

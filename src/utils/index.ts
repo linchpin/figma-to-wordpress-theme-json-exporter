@@ -1,6 +1,6 @@
 // Helper function to check if a value appears to be a variable alias
 export function isVariableAlias(value: any): boolean {
-	return value && typeof value === "object" && value.type === "VARIABLE_ALIAS";
+    return !!(value && typeof value === "object" && (value as any).type === "VARIABLE_ALIAS");
 }
 
 /**

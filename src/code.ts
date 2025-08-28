@@ -9,7 +9,10 @@ figma.ui.onmessage = async (e) => {
 	console.log("code received message", e);
 	if (e.type === "EXPORT") {
 		// Extract options from the message
-		const options: ExportOptions = e.options || {};
+		const options: ExportOptions = {
+		useCollectionsRegistry: true,
+		...(e.options || {})
+		};
 		await exportToJSON(options);
 	} else if (e.type === "GET_COLOR_PRESETS") {
 		// Get all available color presets for the UI
