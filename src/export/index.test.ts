@@ -24,7 +24,16 @@ describe('Export Functions', () => {
                             "custom": {}
 						}
 					}
-				}]
+				}],
+				validation: {
+					isValid: true,
+					message: "✅ Theme.json validation passed!",
+					details: {
+						isValid: true,
+						errors: [],
+						warnings: []
+					}
+				}
 			});
 
   it('should map wp.elements root collection into theme.styles.elements', async () => {
@@ -139,7 +148,16 @@ describe('Export Functions', () => {
 							}
 						}
 					}
-				}]
+				}],
+				validation: {
+					isValid: true,
+					message: "✅ Theme.json validation passed!",
+					details: {
+						isValid: true,
+						errors: [],
+						warnings: []
+					}
+				}
 			});
 		});
 
@@ -195,7 +213,16 @@ describe('Export Functions', () => {
 							}
 						}
 					}
-				}]
+				}],
+				validation: {
+					isValid: true,
+					message: "✅ Theme.json validation passed!",
+					details: {
+						isValid: true,
+						errors: [],
+						warnings: []
+					}
+				}
 			});
 		});
 
@@ -377,7 +404,16 @@ describe('Export Functions', () => {
 							}
 						}
 					}
-				}]
+				}],
+				validation: {
+					isValid: true,
+					message: "✅ Theme.json validation passed!",
+					details: {
+						isValid: true,
+						errors: [],
+						warnings: []
+					}
+				}
 			});
 		});
 
@@ -398,6 +434,28 @@ describe('Export Functions', () => {
 			const call = mockFigma.ui.postMessage.mock.calls[0][0];
 			expect(call.files[0].body.settings.custom.typography).toBeDefined();
 			expect(call.files[0].body.settings.custom.typography.presets).toHaveLength(1);
+		});
+
+		it('should generate WordPress typography structure when requested', async () => {
+			mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue([]);
+			mockFigma.getLocalTextStylesAsync.mockResolvedValue([
+				{
+					name: 'Heading 1',
+					fontFamily: 'Arial',
+					fontSize: 32,
+					fontWeight: 700,
+					lineHeight: { value: 1.2, unit: 'PERCENT' }
+				}
+			]);
+
+			await exportToJSON({ generateWordPressTypography: true });
+
+			const call = mockFigma.ui.postMessage.mock.calls[0][0];
+			expect(call.files[0].body.settings.typography).toBeDefined();
+			expect(call.files[0].body.settings.typography.fontSizes).toHaveLength(1);
+			expect(call.files[0].body.settings.typography.fontFamilies).toHaveLength(1);
+			expect(call.files[0].body.settings.typography.fontWeights).toHaveLength(1);
+			expect(call.files[0].body.settings.typography.lineHeights).toHaveLength(1);
 		});
 
 		it('should handle color collection with single mode', async () => {
@@ -497,6 +555,9 @@ describe('Export Functions', () => {
 
 			mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(collections);
 			
+			// Mock paint styles to prevent iteration error
+			mockFigma.getLocalPaintStylesAsync.mockResolvedValue([]);
+			
 			// Mock the variables for both the main export and color presets
 			// The export function will call getVariableByIdAsync multiple times
 			mockFigma.variables.getVariableByIdAsync
@@ -514,12 +575,15 @@ describe('Export Functions', () => {
 			expect(call.files[0].body.settings.color.palette[0]).toEqual({
 				name: 'Primary',
 				slug: 'primary',
-				color: 'var(--wp--custom--color--primary)'
+				color: 'var(--wp--preset--color--primary)'
 			});
 		});
 
 		it('should handle empty color presets', async () => {
 			mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue([]);
+			
+			// Mock paint styles to prevent iteration error
+			mockFigma.getLocalPaintStylesAsync.mockResolvedValue([]);
 
 			await exportToJSON({ generateColorPresets: true });
 
@@ -542,6 +606,9 @@ describe('Export Functions', () => {
 			];
 
 			mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(collections);
+			
+			// Mock paint styles to prevent iteration error
+			mockFigma.getLocalPaintStylesAsync.mockResolvedValue([]);
 			
 			// Mock the primitive variable (referenced by alias)
 			const primVariable = {
@@ -572,7 +639,7 @@ describe('Export Functions', () => {
 			expect(call.files[0].body.settings.color.palette[0]).toEqual({
 				name: 'Primary',
 				slug: 'primary',
-				color: 'var(--wp--custom--color--primary)'
+				color: 'var(--wp--preset--color--primary)'
 			});
 		});
 

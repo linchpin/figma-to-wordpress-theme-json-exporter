@@ -12,7 +12,7 @@
 
 If you're installing the plugin manually:
 
-1. Download the plugin files from the repository
+1. Download the latest plugin release or clone this repository and run `npm install && npm run build`
 2. In Figma, go to Menu > Plugins > Development > Import plugin from manifest
 3. Select the manifest.json file from the downloaded files
 
@@ -52,7 +52,7 @@ For the best results when using the WordPress Theme.json Exporter:
 2. Go to Menu > Plugins > WordPress Theme.json Export > Export to theme.json
 3. In the plugin UI, you can:
    - Choose to include typography presets (from text styles)
-   - Generate color presets with customizable selection
+   - Generate color presets with customizable selection (If adding/editing variables, you may need to close and reopen the plugin if color variables are msising)
    - Generate spacing presets from spacing variables
    - Upload an existing theme.json file to merge variables into it
    - Preview the generated theme.json and additional style files

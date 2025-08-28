@@ -8,6 +8,9 @@ describe('getColorPresets', () => {
 		// Reset all mock implementations
 		mockFigma.variables.getLocalVariableCollectionsAsync.mockReset();
 		mockFigma.variables.getVariableByIdAsync.mockReset();
+		mockFigma.getLocalPaintStylesAsync.mockReset();
+		// Default mock for paint styles - empty array
+		mockFigma.getLocalPaintStylesAsync.mockResolvedValue([]);
 	});
 
 	it('should return empty array when no color variables exist', async () => {
@@ -68,12 +71,12 @@ describe('getColorPresets', () => {
 		expect(result[0]).toEqual({
 			name: 'Primary 500',
 			slug: 'primary-500',
-			color: 'var(--wp--custom--color--primary--500)',
+			color: 'var(--wp--preset--color--primary-500)',
 		});
 		expect(result[1]).toEqual({
 			name: 'Secondary Accent',
 			slug: 'secondary-accent',
-			color: 'var(--wp--custom--color--secondary-accent)',
+			color: 'var(--wp--preset--color--secondary-accent)',
 		});
 	});
 
@@ -123,12 +126,12 @@ describe('getColorPresets', () => {
 		expect(result[0]).toEqual({
 			name: 'Alias',
 			slug: 'alias',
-			color: 'var(--wp--custom--color--alias)',
+			color: 'var(--wp--preset--color--alias)',
 		});
 		expect(result[1]).toEqual({
 			name: 'Primary',
 			slug: 'primary',
-			color: 'var(--wp--custom--color--primary)',
+			color: 'var(--wp--preset--color--primary)',
 		});
 	});
 
@@ -160,11 +163,8 @@ describe('getColorPresets', () => {
 		]);
 
 		mockFigma.variables.getVariableByIdAsync
-			.mockImplementation((id: string) => {
-				if (id === 'var1') return Promise.resolve(mockVariable1);
-				if (id === 'var2') return Promise.resolve(mockVariable2);
-				return Promise.resolve(null);
-			});
+			.mockResolvedValueOnce(mockVariable1)
+			.mockResolvedValueOnce(mockVariable2);
 
 		const result = await getColorPresets();
 
@@ -172,7 +172,7 @@ describe('getColorPresets', () => {
 		expect(result[0]).toEqual({
 			name: 'Primary',
 			slug: 'primary',
-			color: 'var(--wp--custom--color--primary)',
+			color: 'var(--wp--preset--color--primary)',
 		});
 	});
 
@@ -212,12 +212,9 @@ describe('getColorPresets', () => {
 		]);
 
 		mockFigma.variables.getVariableByIdAsync
-			.mockImplementation((id: string) => {
-				if (id === 'var1') return Promise.resolve(mockVariable1);
-				if (id === 'var2') return Promise.resolve(mockVariable2);
-				if (id === 'var3') return Promise.resolve(mockVariable3);
-				return Promise.resolve(null);
-			});
+			.mockResolvedValueOnce(mockVariable1)
+			.mockResolvedValueOnce(mockVariable2)
+			.mockResolvedValueOnce(mockVariable3);
 
 		const result = await getColorPresets();
 
@@ -228,71 +225,62 @@ describe('getColorPresets', () => {
 	});
 
 	it('should exclude primitives collection but include other collections', async () => {
-        const mockCollections = [
+      const mockCollections = [
 			{
-                name: 'Primitives',
+        name: 'Primitives',
 				modes: [{ modeId: 'mode1', name: 'Default' }],
 				variableIds: ['var1'],
 			},
 			{
-                name: 'wp.settings.colors',
+        name: 'wp.settings.colors',
 				modes: [{ modeId: 'mode2', name: 'Default' }],
 				variableIds: ['var2'],
 			},
 			{
-                name: 'wp.settings.brand',
+      name: 'wp.settings.brand',
 				modes: [{ modeId: 'mode3', name: 'Default' }],
 				variableIds: ['var3'],
 			}
+
 		];
 
-		const mockPrimitivesVariable = {
-			name: 'primitive-color',
+		const mockVariable1 = {
+			name: 'red/500',
+			resolvedType: 'COLOR',
+			valuesByMode: {
+				mode1: { r: 1, g: 0, b: 0, a: 1 },
+			},
+		};
+
+		const mockVariable2 = {
+			name: 'primary',
 			resolvedType: 'COLOR',
 			valuesByMode: {
 				mode1: { r: 0.2, g: 0.4, b: 0.8, a: 1 },
 			},
 		};
 
-		const mockColorVariable = {
-			name: 'primary',
-			resolvedType: 'COLOR',
-			valuesByMode: {
-				mode2: { r: 1, g: 0, b: 0, a: 1 },
-			},
-		};
+		mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(
+			mockCollections,
+		);
 
-		const mockBrandVariable = {
-			name: 'brand-secondary',
-			resolvedType: 'COLOR',
-			valuesByMode: {
-				mode3: { r: 0, g: 1, b: 0, a: 1 },
-			},
-		};
+		mockFigma.variables.getVariableByIdAsync.mockImplementation((id: string) => {
+			if (id === 'var1') return Promise.resolve(mockVariable1);
+			if (id === 'var2') return Promise.resolve(mockVariable2);
+			return Promise.resolve(null);
+		});
 
-		mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(mockCollections);
-
-		mockFigma.variables.getVariableByIdAsync
-			.mockImplementation((id: string) => {
-				if (id === 'var1') return Promise.resolve(mockPrimitivesVariable);
-				if (id === 'var2') return Promise.resolve(mockColorVariable);
-				if (id === 'var3') return Promise.resolve(mockBrandVariable);
-				return Promise.resolve(null);
-			});
+		// Ensure paint styles are mocked
+		mockFigma.getLocalPaintStylesAsync.mockResolvedValue([]);
 
 		const result = await getColorPresets();
 
-		// Should include colors from "Color" and "Brand" collections, but exclude "Primitives"
-		expect(result).toHaveLength(2);
+		// Only the Brand collection variable should be included
+		expect(result).toHaveLength(1);
 		expect(result[0]).toEqual({
-			name: 'Brand Secondary',
-			slug: 'brand-secondary',
-			color: 'var(--wp--custom--color--brand-secondary)',
-		});
-		expect(result[1]).toEqual({
 			name: 'Primary',
 			slug: 'primary',
-			color: 'var(--wp--custom--color--primary)',
+			color: 'var(--wp--preset--color--primary)',
 		});
 	});
 
@@ -307,7 +295,7 @@ describe('getColorPresets', () => {
 			name: 'primary',
 			resolvedType: 'COLOR',
 			valuesByMode: {
-				mode1: { r: 1, g: 0, b: 0, a: 1 },
+				mode1: { r: 0.2, g: 0.4, b: 0.8, a: 1 },
 			},
 		};
 
@@ -315,7 +303,7 @@ describe('getColorPresets', () => {
 			name: 'secondary',
 			resolvedType: 'COLOR',
 			valuesByMode: {
-				mode1: { r: 0, g: 1, b: 0, a: 1 },
+				mode1: { r: 1, g: 0.5, b: 0, a: 1 },
 			},
 		};
 
@@ -323,7 +311,7 @@ describe('getColorPresets', () => {
 			name: 'tertiary',
 			resolvedType: 'COLOR',
 			valuesByMode: {
-				mode1: { r: 0, g: 0, b: 1, a: 1 },
+				mode1: { r: 0.5, g: 0.2, b: 0.8, a: 1 },
 			},
 		};
 
@@ -331,28 +319,135 @@ describe('getColorPresets', () => {
 			mockColorCollection,
 		]);
 
-		mockFigma.variables.getVariableByIdAsync
-			.mockImplementation((id: string) => {
-				if (id === 'var1') return Promise.resolve(mockVariable1);
-				if (id === 'var2') return Promise.resolve(mockVariable2);
-				if (id === 'var3') return Promise.resolve(mockVariable3);
-				return Promise.resolve(null);
-			});
+		mockFigma.variables.getVariableByIdAsync.mockImplementation((id: string) => {
+			if (id === 'var1') return Promise.resolve(mockVariable1);
+			if (id === 'var2') return Promise.resolve(mockVariable2);
+			if (id === 'var3') return Promise.resolve(mockVariable3);
+			return Promise.resolve(null);
+		});
 
-		// Only select var1 and var3
+		// Ensure paint styles are mocked
+		mockFigma.getLocalPaintStylesAsync.mockResolvedValue([]);
+
 		const result = await getColorPresets(['var1', 'var3']);
 
 		expect(result).toHaveLength(2);
 		expect(result[0]).toEqual({
 			name: 'Primary',
 			slug: 'primary',
-			color: 'var(--wp--custom--color--primary)',
+			color: 'var(--wp--preset--color--primary)',
 		});
 		expect(result[1]).toEqual({
 			name: 'Tertiary',
 			slug: 'tertiary',
-			color: 'var(--wp--custom--color--tertiary)',
+			color: 'var(--wp--preset--color--tertiary)',
 		});
+	});
+
+	it('should get color presets with paint style labels', async () => {
+		const mockCollections = [
+			{
+				id: 'collection1',
+				name: 'Brand Colors',
+				modes: [{ modeId: 'mode1', name: 'Default' }],
+				variableIds: ['var1']
+			}
+		];
+
+		const mockVariables = [
+			{
+				id: 'var1',
+				name: 'brand/primary',
+				resolvedType: 'COLOR',
+				valuesByMode: {
+					'mode1': { r: 1, g: 0, b: 0 }
+				}
+			}
+		];
+
+		const mockPaintStyles = [
+			{
+				id: 'paint1',
+				name: 'Midnight',
+				paints: [
+					{
+						type: 'VARIABLE',
+						boundVariables: {
+							paints: [{ id: 'var1' }]
+						}
+					}
+				]
+			}
+		];
+
+		mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(mockCollections);
+		mockFigma.variables.getVariableByIdAsync.mockResolvedValue(mockVariables[0]);
+		mockFigma.getLocalPaintStylesAsync.mockResolvedValue(mockPaintStyles);
+
+		const result = await getColorPresets();
+
+		expect(result).toHaveLength(1);
+		expect(result[0]).toMatchObject({
+			name: 'Midnight',
+			slug: 'brand-primary',
+			color: 'var(--wp--preset--color--brand-primary)'
+		});
+	});
+
+	it('should filter by selected color IDs', async () => {
+		const mockCollections = [
+			{
+				id: 'collection1',
+				name: 'Brand Colors',
+				modes: [{ modeId: 'mode1', name: 'Default' }],
+				variableIds: ['var1', 'var2']
+			}
+		];
+
+		const mockVariables = [
+			{
+				id: 'var1',
+				name: 'brand/primary',
+				resolvedType: 'COLOR',
+				valuesByMode: {
+					'mode1': { r: 1, g: 0, b: 0 }
+				}
+			},
+			{
+				id: 'var2',
+				name: 'brand/secondary',
+				resolvedType: 'COLOR',
+				valuesByMode: {
+					'mode1': { r: 0, g: 1, b: 0 }
+				}
+			}
+		];
+
+		const mockPaintStyles = [
+			{
+				id: 'paint1',
+				name: 'Midnight',
+				paints: [
+					{
+						type: 'VARIABLE',
+						boundVariables: {
+							paints: [{ id: 'var1' }]
+						}
+					}
+				]
+			}
+		];
+
+		mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(mockCollections);
+		mockFigma.variables.getVariableByIdAsync
+			.mockResolvedValueOnce(mockVariables[0])
+			.mockResolvedValueOnce(mockVariables[1]);
+		mockFigma.getLocalPaintStylesAsync.mockResolvedValue(mockPaintStyles);
+
+		const result = await getColorPresets(['var1']);
+
+		expect(result).toHaveLength(1);
+		expect(result[0].name).toBe('Midnight');
 	});
 });
 
@@ -389,39 +484,57 @@ describe('getAllColorPresets', () => {
             {
                 name: 'wp.settings.colors',
 				modes: [{ modeId: 'mode1', name: 'Default' }],
-				variableIds: ['var1', 'var2']
-			}
-		]);
+				variableIds: ['var1', 'var2'],
+			},
+		];
 
-		mockFigma.variables.getVariableByIdAsync
-			.mockResolvedValueOnce({
+		const mockVariables = [
+			{
+				id: 'var1',
 				name: 'primary',
 				resolvedType: 'COLOR',
 				valuesByMode: {
-					mode1: { r: 1, g: 0, b: 0 }
-				}
-			})
-			.mockResolvedValueOnce({
+					mode1: { r: 1, g: 0, b: 0 },
+				},
+			},
+			{
+				id: 'var2',
 				name: 'secondary',
 				resolvedType: 'COLOR',
 				valuesByMode: {
-					mode1: { type: 'VARIABLE_ALIAS', id: 'ref-var' }
-				}
-			})
-			.mockResolvedValueOnce({
-				name: 'primary',
-				resolvedType: 'COLOR',
-				valuesByMode: {
-					mode1: { r: 1, g: 0, b: 0 }
-				}
-			});
+					mode1: { type: 'VARIABLE_ALIAS', id: 'var1' },
+				},
+			},
+		];
+
+		const mockPaintStyles = [
+			{
+				id: 'paint1',
+				name: 'Midnight',
+				paints: [
+					{
+						type: 'VARIABLE',
+						boundVariables: {
+							paints: [{ id: 'var1' }]
+						}
+					}
+				]
+			},
+		];
+
+		mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(mockCollections);
+		mockFigma.variables.getVariableByIdAsync
+			.mockResolvedValueOnce(mockVariables[0])
+			.mockResolvedValueOnce(mockVariables[1])
+			.mockResolvedValueOnce(mockVariables[0]); // For alias resolution
+		mockFigma.getLocalPaintStylesAsync.mockResolvedValue(mockPaintStyles);
 
 		const result = await getAllColorPresets();
 
         expect(result).toEqual([
 			{
 				id: 'var1',
-				name: 'Primary',
+				name: 'Midnight', // Paint Style name
 				slug: 'primary',
 				color: 'var(--wp--custom--color--primary)',
                 collectionName: 'wp.settings.colors',
@@ -491,30 +604,54 @@ describe('getAllColorPresets', () => {
 			valuesByMode: {
 				mode1: { r: 1, g: 0, b: 0, a: 1 },
 			},
-		};
+		];
 
-		const mockVariable2 = {
-			name: 'secondary/accent',
-			resolvedType: 'COLOR',
-			valuesByMode: {
-				mode1: { r: 0, g: 1, b: 0, a: 1 },
+		const mockVariables = [
+			{
+				id: 'var1',
+				name: 'primary',
+				resolvedType: 'COLOR',
+				valuesByMode: {
+					mode1: { r: 1, g: 0, b: 0 },
+				},
 			},
-		};
+			{
+				id: 'var2',
+				name: 'secondary-accent',
+				resolvedType: 'COLOR',
+				valuesByMode: {
+					mode1: { r: 0, g: 1, b: 0 },
+				},
+			},
+		];
 
-		mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue([
-			mockColorCollection,
-		]);
+		const mockPaintStyles = [
+			{
+				id: 'paint1',
+				name: 'Midnight',
+				paints: [
+					{
+						type: 'VARIABLE',
+						boundVariables: {
+							paints: [{ id: 'var1' }]
+						}
+					}
+				]
+			},
+		];
 
+		mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(mockCollections);
 		mockFigma.variables.getVariableByIdAsync
-			.mockResolvedValueOnce(mockVariable1)
-			.mockResolvedValueOnce(mockVariable2);
+			.mockResolvedValueOnce(mockVariables[0])
+			.mockResolvedValueOnce(mockVariables[1]);
+		mockFigma.getLocalPaintStylesAsync.mockResolvedValue(mockPaintStyles);
 
 		const result = await getAllColorPresets();
 
 		expect(result).toHaveLength(2);
         expect(result[0]).toEqual({
 			id: 'var1',
-			name: 'Primary',
+			name: 'Midnight',
 			slug: 'primary',
 			color: 'var(--wp--custom--color--primary)',
             collectionName: 'wp.settings.color',
@@ -524,7 +661,7 @@ describe('getAllColorPresets', () => {
         expect(result[1]).toEqual({
 			id: 'var2',
 			name: 'Secondary Accent',
-			slug: 'secondary-accent',
+			slug: 'secondary-accent'
 			color: 'var(--wp--custom--color--secondary--accent)',
             collectionName: 'wp.settings.color',
 			resolvedColor: '#00ff00'
@@ -545,30 +682,54 @@ describe('getAllColorPresets', () => {
 			valuesByMode: {
 				mode1: { type: 'VARIABLE_ALIAS', id: 'primitive-var' },
 			},
-		};
+		];
 
-		const mockPrimitiveVariable = {
-			name: 'primitives/blue/500',
-			resolvedType: 'COLOR',
-			valuesByMode: {
-				mode1: { r: 0, g: 0, b: 1, a: 1 },
+		const mockVariables = [
+			{
+				id: 'var1',
+				name: 'alias-color',
+				resolvedType: 'COLOR',
+				valuesByMode: {
+					mode1: { type: 'VARIABLE_ALIAS', id: 'var2' },
+				},
 			},
-		};
+			{
+				id: 'var2',
+				name: 'primitives/blue/500',
+				resolvedType: 'COLOR',
+				valuesByMode: {
+					mode1: { r: 0, g: 0, b: 1 },
+				},
+			},
+		];
 
-		mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue([
-			mockColorCollection,
-		]);
+		const mockPaintStyles = [
+			{
+				id: 'paint1',
+				name: 'Midnight',
+				paints: [
+					{
+						type: 'VARIABLE',
+						boundVariables: {
+							paints: [{ id: 'var1' }]
+						}
+					}
+				]
+			},
+		];
 
+		mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(mockCollections);
 		mockFigma.variables.getVariableByIdAsync
-			.mockResolvedValueOnce(mockAliasVariable)
-			.mockResolvedValueOnce(mockPrimitiveVariable);
+			.mockResolvedValueOnce(mockVariables[0])
+			.mockResolvedValueOnce(mockVariables[1]);
+		mockFigma.getLocalPaintStylesAsync.mockResolvedValue(mockPaintStyles);
 
 		const result = await getAllColorPresets();
 
 		expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
 			id: 'var1',
-			name: 'Alias Color',
+			name: 'Midnight',
 			slug: 'alias-color',
 			color: 'var(--wp--custom--color--alias-color)',
             collectionName: 'wp.settings.color',
@@ -588,36 +749,43 @@ describe('getAllColorPresets', () => {
         name: 'wp.settings.color',
 				modes: [{ modeId: 'mode2', name: 'Default' }],
 				variableIds: ['var2'],
-			}
 		];
 
-		const mockBrandVariable = {
-			name: 'zebra',
-			resolvedType: 'COLOR',
-			valuesByMode: {
-				mode1: { r: 0, g: 0, b: 0, a: 1 },
+		const mockVariables = [
+			{
+				id: 'var1',
+				name: 'zebra',
+				resolvedType: 'COLOR',
+				valuesByMode: {
+					mode1: { r: 0, g: 0, b: 0 },
+				},
 			},
-		};
-
-		const mockColorVariable = {
-			name: 'alpha',
-			resolvedType: 'COLOR',
-			valuesByMode: {
-				mode2: { r: 1, g: 1, b: 1, a: 1 },
+			{
+				id: 'var2',
+				name: 'alpha',
+				resolvedType: 'COLOR',
+				valuesByMode: {
+					mode1: { r: 1, g: 1, b: 1 },
+				},
 			},
-		};
+			{
+				id: 'var3',
+				name: 'beta',
+				resolvedType: 'COLOR',
+				valuesByMode: {
+					mode1: { r: 0.5, g: 0.5, b: 0.5 },
+				},
+			},
+		];
 
 		mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue(mockCollections);
-
 		mockFigma.variables.getVariableByIdAsync
-			.mockImplementation((id: string) => {
-				if (id === 'var1') return Promise.resolve(mockBrandVariable);
-				if (id === 'var2') return Promise.resolve(mockColorVariable);
-				return Promise.resolve(null);
-			});
+			.mockResolvedValueOnce(mockVariables[0])
+			.mockResolvedValueOnce(mockVariables[1])
+			.mockResolvedValueOnce(mockVariables[2]);
+		mockFigma.getLocalPaintStylesAsync.mockResolvedValue([]);
 
 		const result = await getAllColorPresets();
-
     expect(result).toHaveLength(2);
     // Sorted by collection name (lexicographically on raw names)
     expect(result[0].collectionName).toBe('wp.settings.brand');

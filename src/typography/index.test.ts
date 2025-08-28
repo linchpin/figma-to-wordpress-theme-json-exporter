@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { 
 	getTypographyPresets, 
+	getWordPressTypographyPresets,
 	formatFontPropertyPath, 
 	formatStyleName,
 	findFontFamilyVariable,
@@ -1015,6 +1016,350 @@ describe('Typography Functions', () => {
 
 			expect(result[0].fontSize).toBe('1.125rem'); // 18px = 1.125rem
 			expect(result[1].fontSize).toBe('0.875rem'); // 14px = 0.875rem
+		});
+	});
+
+	describe('getWordPressTypographyPresets', () => {
+		it('should generate WordPress-compatible typography structure', async () => {
+			const mockTextStyles = [
+				{
+					name: 'Heading 1',
+					fontFamily: 'Mona Sans',
+					fontSize: 32,
+					fontWeight: 700,
+					lineHeight: { value: 120, unit: 'PERCENT' },
+					letterSpacing: { value: 2, unit: 'PIXELS' },
+					fontName: { family: 'Mona Sans', style: 'Bold' }
+				},
+				{
+					name: 'Body Text',
+					fontFamily: 'Mona Sans',
+					fontSize: 16,
+					fontWeight: 400,
+					lineHeight: { value: 150, unit: 'PERCENT' },
+					fontName: { family: 'Mona Sans', style: 'Regular' }
+				}
+			];
+
+			mockFigma.getLocalTextStylesAsync.mockResolvedValue(mockTextStyles);
+
+			const result = await getWordPressTypographyPresets();
+
+			expect(result).toHaveProperty('fontSizes');
+			expect(result).toHaveProperty('fontFamilies');
+			expect(result).toHaveProperty('fontWeights');
+			expect(result).toHaveProperty('lineHeights');
+			expect(result).toHaveProperty('letterSpacings');
+
+			expect(result.fontSizes).toHaveLength(2);
+			expect(result.fontFamilies).toHaveLength(1); // Only one unique font family
+			expect(result.fontWeights).toHaveLength(2);
+			expect(result.lineHeights).toHaveLength(2);
+			expect(result.letterSpacings).toHaveLength(1);
+
+			// Check font sizes
+			expect(result.fontSizes[0]).toEqual({
+				size: '32px',
+				name: 'Heading 1',
+				slug: 'heading-1'
+			});
+
+			// Check font families - should match WordPress schema
+			expect(result.fontFamilies[0]).toEqual({
+				fontFamily: 'Mona Sans',
+				slug: 'mona-sans',
+				name: 'Heading 1'
+			});
+
+			// Check font weights
+			expect(result.fontWeights[0]).toEqual({
+				weight: 700,
+				name: 'Heading 1',
+				slug: 'heading-1'
+			});
+
+			// Check line heights (converted from percentage)
+			expect(result.lineHeights[0]).toEqual({
+				lineHeight: "1.2",
+				name: 'Heading 1',
+				slug: 'heading-1'
+			});
+
+			// Check letter spacing (converted to em)
+			expect(result.letterSpacings[0]).toEqual({
+				letterSpacing: '0.063em',
+				name: 'Heading 1',
+				slug: 'heading-1'
+			});
+		});
+
+		it('should handle bound variables correctly', async () => {
+			const mockTextStyles = [
+				{
+					name: 'Test Style',
+					fontFamily: 'Mona Sans',
+					fontSize: 16,
+					fontWeight: 400,
+					boundVariables: {
+						fontFamily: { id: 'font-family-var' },
+						fontSize: { id: 'font-size-var' },
+						fontWeight: { id: 'font-weight-var' }
+					}
+				}
+			];
+
+			mockFigma.getLocalTextStylesAsync.mockResolvedValue(mockTextStyles);
+			mockFigma.variables.getVariableByIdAsync
+				.mockResolvedValueOnce({ name: 'font/family/primary' })
+				.mockResolvedValueOnce({ name: 'font/size/body' })
+				.mockResolvedValueOnce({ name: 'font/weight/normal' });
+
+			const result = await getWordPressTypographyPresets();
+
+			expect(result.fontFamilies[0].fontFamily).toBe('var(--wp--custom--font--family--primary)');
+			expect(result.fontFamilies[0].slug).toBe('font-family-primary');
+			expect(result.fontSizes[0].size).toBe('var(--wp--custom--font--size--body)');
+			expect(result.fontWeights[0].weight).toBe('var(--wp--custom--font--weight--normal)');
+		});
+
+		it('should handle any font family without hardcoding', async () => {
+			const mockTextStyles = [
+				{
+					name: 'Custom Font Style',
+					fontFamily: 'Custom Font Name',
+					fontSize: 16,
+					fontWeight: 400
+				}
+			];
+
+			mockFigma.getLocalTextStylesAsync.mockResolvedValue(mockTextStyles);
+
+			const result = await getWordPressTypographyPresets();
+
+			expect(result.fontFamilies[0]).toEqual({
+				fontFamily: 'Custom Font Name',
+				slug: 'custom-font-name',
+				name: 'Custom Font Style'
+			});
+		});
+
+		it('should handle CSS variable references correctly', async () => {
+			const mockTextStyles = [
+				{
+					name: 'Test Style',
+					fontFamily: 'Mona Sans',
+					fontSize: 16,
+					fontWeight: 400,
+					boundVariables: {
+						fontFamily: { id: 'font-family-var' }
+					}
+				}
+			];
+
+			mockFigma.getLocalTextStylesAsync.mockResolvedValue(mockTextStyles);
+			mockFigma.variables.getVariableByIdAsync.mockResolvedValue({ name: 'font/family/primary' });
+
+			const result = await getWordPressTypographyPresets();
+
+			expect(result.fontFamilies[0].fontFamily).toBe('var(--wp--custom--font--family--primary)');
+		});
+
+		it('should handle system fonts correctly', async () => {
+			const mockTextStyles = [
+				{
+					name: 'System Font Style',
+					fontFamily: 'system',
+					fontSize: 16,
+					fontWeight: 400
+				}
+			];
+
+			mockFigma.getLocalTextStylesAsync.mockResolvedValue(mockTextStyles);
+
+			const result = await getWordPressTypographyPresets();
+
+			expect(result.fontFamilies[0]).toEqual({
+				fontFamily: 'var(--wp--preset--font-family--system)',
+				slug: 'system',
+				name: 'System Font Style'
+			});
+		});
+
+		it('should remove empty arrays from output', async () => {
+			const mockTextStyles = [
+				{
+					name: 'Test Style',
+					fontSize: 16
+					// No other typography properties
+				}
+			];
+
+			mockFigma.getLocalTextStylesAsync.mockResolvedValue(mockTextStyles);
+
+			const result = await getWordPressTypographyPresets();
+
+			expect(result).toHaveProperty('fontSizes');
+			expect(result).not.toHaveProperty('fontFamilies');
+			expect(result).not.toHaveProperty('fontWeights');
+			expect(result).not.toHaveProperty('lineHeights');
+			expect(result).not.toHaveProperty('letterSpacings');
+		});
+
+		it('should handle rem conversion when enabled', async () => {
+			const mockTextStyles = [
+				{
+					name: 'Test Style',
+					fontSize: 16
+				}
+			];
+
+			mockFigma.getLocalTextStylesAsync.mockResolvedValue(mockTextStyles);
+
+			const options = {
+				useRem: true,
+				remCollections: { font: true }
+			};
+
+			const result = await getWordPressTypographyPresets(options);
+
+			expect(result.fontSizes[0].size).toBe('1rem');
+		});
+
+		it('should handle text transform properties', async () => {
+			const mockTextStyles = [
+				{
+					name: 'Uppercase Text',
+					fontSize: 16,
+					textCase: 'UPPER'
+				}
+			];
+
+			mockFigma.getLocalTextStylesAsync.mockResolvedValue(mockTextStyles);
+
+			const result = await getWordPressTypographyPresets();
+
+			expect(result).toHaveProperty('textTransforms');
+			expect(result.textTransforms[0]).toEqual({
+				textTransform: 'uppercase',
+				name: 'Uppercase Text',
+				slug: 'uppercase-text'
+			});
+		});
+
+		it('should handle text decoration properties', async () => {
+			const mockTextStyles = [
+				{
+					name: 'Underlined Text',
+					fontSize: 16,
+					textDecoration: 'UNDERLINE'
+				}
+			];
+
+			mockFigma.getLocalTextStylesAsync.mockResolvedValue(mockTextStyles);
+
+			const result = await getWordPressTypographyPresets();
+
+			expect(result).toHaveProperty('textDecorations');
+			expect(result.textDecorations[0]).toEqual({
+				textDecoration: 'underline',
+				name: 'Underlined Text',
+				slug: 'underlined-text'
+			});
+		});
+
+		it('should generate typography structure similar to Ollie theme', async () => {
+			const mockTextStyles = [
+				{
+					name: 'Heading/H1',
+					fontFamily: 'Mona Sans',
+					fontSize: 48,
+					fontWeight: 700,
+					lineHeight: { value: 110, unit: 'PERCENT' },
+					fontName: { family: 'Mona Sans', style: 'Bold' }
+				},
+				{
+					name: 'Heading/H2',
+					fontFamily: 'Mona Sans',
+					fontSize: 36,
+					fontWeight: 600,
+					lineHeight: { value: 115, unit: 'PERCENT' },
+					fontName: { family: 'Mona Sans', style: 'SemiBold' }
+				},
+				{
+					name: 'Body/Regular',
+					fontFamily: 'Mona Sans',
+					fontSize: 16,
+					fontWeight: 400,
+					lineHeight: { value: 150, unit: 'PERCENT' },
+					fontName: { family: 'Mona Sans', style: 'Regular' }
+				},
+				{
+					name: 'Body/Small',
+					fontFamily: 'Mona Sans',
+					fontSize: 14,
+					fontWeight: 400,
+					lineHeight: { value: 140, unit: 'PERCENT' },
+					fontName: { family: 'Mona Sans', style: 'Regular' }
+				},
+				{
+					name: 'Code/Monospace',
+					fontFamily: 'monospace',
+					fontSize: 14,
+					fontWeight: 400,
+					lineHeight: { value: 130, unit: 'PERCENT' }
+				}
+			];
+
+			mockFigma.getLocalTextStylesAsync.mockResolvedValue(mockTextStyles);
+
+			const result = await getWordPressTypographyPresets();
+
+			// Should have 2 unique font families (Mona Sans and monospace)
+			expect(result.fontFamilies).toHaveLength(2);
+			
+			// Should have 4 unique font sizes
+			expect(result.fontSizes).toHaveLength(4);
+			
+			// Should have 3 unique font weights (700, 600, 400)
+			expect(result.fontWeights).toHaveLength(3);
+			
+			// Should have 4 unique line heights
+			expect(result.lineHeights).toHaveLength(4);
+
+			// Check Mona Sans font family
+			const monaSansFamily = result.fontFamilies.find((f: any) => f.fontFamily === 'Mona Sans');
+			expect(monaSansFamily).toEqual({
+				fontFamily: 'Mona Sans',
+				slug: 'mona-sans',
+				name: 'Heading H1'
+			});
+
+			// Check monospace font family
+			const monospaceFamily = result.fontFamilies.find((f: any) => f.fontFamily === 'var(--wp--preset--font-family--monospace)');
+			expect(monospaceFamily).toEqual({
+				fontFamily: 'var(--wp--preset--font-family--monospace)',
+				slug: 'monospace',
+				name: 'Code Monospace'
+			});
+
+			// Check font sizes
+			expect(result.fontSizes).toEqual(
+				expect.arrayContaining([
+					{ size: '48px', name: 'Heading H1', slug: 'heading-h1' },
+					{ size: '36px', name: 'Heading H2', slug: 'heading-h2' },
+					{ size: '16px', name: 'Body Regular', slug: 'body-regular' },
+					{ size: '14px', name: 'Body Small', slug: 'body-small' }
+				])
+			);
+
+			// Check font weights
+			expect(result.fontWeights).toEqual(
+				expect.arrayContaining([
+					{ weight: 700, name: 'Heading H1', slug: 'heading-h1' },
+					{ weight: 600, name: 'Heading H2', slug: 'heading-h2' },
+					{ weight: 400, name: 'Body Regular', slug: 'body-regular' }
+				])
+			);
 		});
 	});
 }); 

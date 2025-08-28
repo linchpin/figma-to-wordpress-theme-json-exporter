@@ -1,6 +1,7 @@
 // Interface for export options
 export interface ExportOptions {
 	generateTypography?: boolean;
+	generateWordPressTypography?: boolean; // Use WordPress-compatible typography structure
 	generateColorPresets?: boolean;
 	generateSpacingPresets?: boolean;
 	baseTheme?: any;
