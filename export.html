@@ -32,6 +32,7 @@
 	  gap: var(--spacing);
 	  height: 100%;
 	  overflow: hidden;
+	  min-height: 0;
 	}
   
 	button {
@@ -468,21 +469,33 @@
 	  display: none;
 	  flex: 1;
 	  overflow: hidden;
+	  min-height: 0;
 	}
 
 	.step-content.active {
 	  display: flex;
 	  flex-direction: column;
+	  min-height: 0;
+	}
+
+	.step-body {
+	  flex: 1;
+	  overflow-y: auto;
+	  min-height: 0;
+	  display: flex;
+	  flex-direction: column;
+	  padding-right: calc(var(--spacing) / 2);
 	}
 
 	.step-actions {
 	  display: flex;
 	  justify-content: space-between;
 	  align-items: center;
-	  margin-top: var(--spacing);
 	  padding-top: var(--spacing);
 	  border-top: 1px solid var(--figma-color-border);
 	  flex-shrink: 0;
+	  background-color: var(--figma-color-bg);
+	  margin-top: var(--spacing);
 	}
 
 	.step-button {
@@ -979,45 +992,24 @@
 		</div>
 	</div>
 
-	
-	<div class="options">
-	  <div class="option-row">
-		<input type="checkbox" id="generate-color-presets" />
-		<label for="generate-color-presets">Generate color presets from color variables</label>
-		<button type="button" class="customize-button" id="customize-colors" disabled>Customize</button>
-	  </div>
-
-	  <div class="option-row">
-		<input type="checkbox" id="generate-typography" />
-		<label for="generate-typography">Generate typography presets from text styles </label>
-	  </div>
-
-	  <div class="option-row">
-		<input type="checkbox" id="generate-wordpress-typography" />
-		<label for="generate-wordpress-typography">Generate WordPress-native typography structure <em>(fontFamilies, fontSizes, etc.)</em></label>
-	  </div>
-
-	  <div class="option-row">
-		<input type="checkbox" id="generate-spacing-presets" />
-		<label for="generate-spacing-presets">Generate spacing presets from spacing variables</label>
-	  </div>
-
 	<!-- Step 1: Collection Selection -->
 	<div class="step-content active" id="step-1">
-		<div class="info-text">
-			Select which collections you want to include in your WordPress theme export.
-			<br><br>
-			<strong>WordPress Settings Collections:</strong> Collections named "wordpress.settings.*" will be included in the WordPress color palette for the block editor.
-		</div>
-
-		<div class="collections-section">
-			<label class="collections-label">Select Collections to Export</label>
-			<div class="collections-container" id="collections-container">
-				<div class="loading-collections">Loading collections...</div>
+		<div class="step-body">
+			<div class="info-text">
+				Select which collections you want to include in your WordPress theme export.
+				<br><br>
+				<strong>WordPress Settings Collections:</strong> Collections named "wordpress.settings.*" will be included in the WordPress color palette for the block editor.
 			</div>
-			<div class="collections-actions">
-				<button type="button" class="copy-button" id="select-all-collections">Select All</button>
-				<button type="button" class="copy-button" id="select-none-collections">Select None</button>
+
+			<div class="collections-section">
+				<label class="collections-label">Select Collections to Export</label>
+				<div class="collections-container" id="collections-container">
+					<div class="loading-collections">Loading collections...</div>
+				</div>
+				<div class="collections-actions">
+					<button type="button" class="copy-button" id="select-all-collections">Select All</button>
+					<button type="button" class="copy-button" id="select-none-collections">Select None</button>
+				</div>
 			</div>
 		</div>
 
@@ -1029,18 +1021,19 @@
 
 	<!-- Step 2: Configuration -->
 	<div class="step-content" id="step-2">
-		<div class="step-summary" id="step-2-summary">
-			<strong>Selected Collections:</strong>
-			<div class="collection-summary" id="selected-collections-summary">
-				Loading...
+		<div class="step-body">
+			<div class="step-summary" id="step-2-summary">
+				<strong>Selected Collections:</strong>
+				<div class="collection-summary" id="selected-collections-summary">
+					Loading...
+				</div>
 			</div>
-		</div>
 
-		<div class="info-text">
-			Configure what you want to export from your selected collections.
-		</div>
+			<div class="info-text">
+				Configure what you want to export from your selected collections.
+			</div>
 
-        <div class="options">
+			<div class="options">
             <!-- Color options group -->
             <div class="options-group" id="color-options">
                 <h4 class="collections-group-title">Color options</h4>
@@ -1156,6 +1149,7 @@
 				</div>
 			</div>
 		</div>
+		</div>
 
 		<div class="step-actions">
 			<button type="button" class="step-button secondary" id="back-to-step-1">Back</button>
@@ -1165,33 +1159,35 @@
 
 	<!-- Step 3: Export -->
 	<div class="step-content" id="step-3">
-		<div class="step-summary" id="step-3-summary">
-			<strong>Export Summary:</strong>
-			<div id="export-summary">
-				Loading...
+		<div class="step-body">
+			<div class="step-summary" id="step-3-summary">
+				<strong>Export Summary:</strong>
+				<div id="export-summary">
+					Loading...
+				</div>
 			</div>
-		</div>
 
-		<!-- Validation Warnings -->
-		<div class="validation-warnings" id="validation-warnings">
-			<div class="validation-warnings-title">
-				⚠ Validation Warnings
+			<!-- Validation Warnings -->
+			<div class="validation-warnings" id="validation-warnings">
+				<div class="validation-warnings-title">
+					⚠ Validation Warnings
+				</div>
+				<ul class="validation-warnings-list" id="validation-warnings-list">
+				</ul>
 			</div>
-			<ul class="validation-warnings-list" id="validation-warnings-list">
-			</ul>
-		</div>
 
-		<div class="info-text">
-			Review your export configuration and generate your WordPress theme files.
-		</div>
+			<div class="info-text">
+				Review your export configuration and generate your WordPress theme files.
+			</div>
 
-		<div class="button-row">
-			<button id="export" type="button">Export Variables</button>
-			<button id="download" type="button">Download theme.json</button>
-		</div>
-		<div id="files-container">
-			<div class="empty-state">
-				Click "Export Variables" to generate WordPress theme files from your Figma variables.
+			<div class="button-row">
+				<button id="export" type="button">Export Variables</button>
+				<button id="download" type="button">Download theme.json</button>
+			</div>
+			<div id="files-container">
+				<div class="empty-state">
+					Click "Export Variables" to generate WordPress theme files from your Figma variables.
+				</div>
 			</div>
 		</div>
 
