@@ -1,0 +1,912 @@
+<style>
+	:root {
+	  --spacing: 0.8rem;
+	}
+
+	* {
+	  box-sizing: border-box;
+	  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+		Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+		sans-serif;
+	}
+
+	body {
+	  background-color: var(--figma-color-bg);
+	  color: var(--figma-color-text);
+	  margin: 0;
+	  padding: var(--spacing);
+	  min-height: 400px;
+	  min-width: 400px;
+	  position: relative;
+	  overflow: hidden;
+	}
+
+	html,
+	body {
+	  height: 100%;
+	}
+
+	main {
+	  display: flex;
+	  flex-direction: column;
+	  gap: var(--spacing);
+	  height: 100%;
+	  overflow: hidden;
+	}
+
+	button {
+	  appearance: none;
+	  border-radius: 4px;
+	  padding: var(--spacing);
+	  cursor: pointer;
+	}
+
+	button {
+	  background-color: var(--figma-color-bg-brand);
+	  border: none;
+	  color: var(--figma-color-text-onbrand);
+	  font-weight: bold;
+	}
+
+	.info-text {
+	  font-size: 0.9rem;
+	  margin-bottom: var(--spacing);
+	  color: var(--figma-color-text-secondary);
+	  flex-shrink: 0;
+	}
+
+	/* Step navigation styles */
+	.step-navigation {
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 2);
+	  margin-bottom: var(--spacing);
+	  padding: calc(var(--spacing) / 2);
+	  background-color: var(--figma-color-bg-secondary);
+	  border-radius: 4px;
+	  flex-shrink: 0;
+	}
+
+	.step-indicator {
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 4);
+	  padding: calc(var(--spacing) / 4) calc(var(--spacing) / 2);
+	  border-radius: 4px;
+	  font-size: 0.8rem;
+	  font-weight: 500;
+	  cursor: pointer;
+	  transition: all 0.2s;
+	}
+
+	.step-indicator span:first-child {
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  width: 20px;
+	  height: 20px;
+	  border-radius: 50%;
+	  font-size: 0.7rem;
+	  font-weight: bold;
+	}
+
+	.step-indicator.active {
+	  background-color: var(--figma-color-bg-brand);
+	  color: var(--figma-color-text-onbrand);
+	}
+
+	.step-indicator.active span:first-child {
+	  background-color: var(--figma-color-text-onbrand);
+	  color: var(--figma-color-bg-brand);
+	}
+
+	.step-indicator.completed {
+	  background-color: var(--figma-color-bg-success);
+	  color: var(--figma-color-text-onbrand);
+	}
+
+	.step-indicator:not(.active):not(.completed) {
+	  background-color: var(--figma-color-bg);
+	  color: var(--figma-color-text-secondary);
+	}
+
+	.step-indicator:not(.active):not(.completed) span:first-child {
+	  background-color: var(--figma-color-bg-secondary);
+	}
+
+	.step-content {
+	  display: none;
+	  flex: 1;
+	  overflow: hidden;
+	  flex-direction: column;
+	}
+
+	.step-content.active {
+	  display: flex;
+	}
+
+	.step-actions {
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	  margin-top: var(--spacing);
+	  padding-top: var(--spacing);
+	  border-top: 1px solid var(--figma-color-border);
+	  flex-shrink: 0;
+	}
+
+	.step-button {
+	  padding: calc(var(--spacing) / 2) var(--spacing);
+	  border-radius: 4px;
+	  font-weight: 500;
+	  cursor: pointer;
+	  border: none;
+	}
+
+	.step-button.primary {
+	  background-color: var(--figma-color-bg-brand);
+	  color: var(--figma-color-text-onbrand);
+	}
+
+	.step-button.secondary {
+	  background-color: var(--figma-color-bg-secondary);
+	  color: var(--figma-color-text);
+	}
+
+	.step-button:disabled {
+	  background-color: var(--figma-color-bg-disabled);
+	  color: var(--figma-color-text-disabled);
+	  cursor: not-allowed;
+	}
+
+	/* Section cards */
+	.section-list {
+	  flex: 1;
+	  overflow-y: auto;
+	  min-height: 0;
+	}
+
+	.section-card {
+	  border: 2px solid var(--figma-color-border);
+	  border-radius: 8px;
+	  margin-bottom: var(--spacing);
+	  overflow: hidden;
+	  transition: border-color 0.2s;
+	}
+
+	.section-card.selected {
+	  border-color: var(--figma-color-bg-brand);
+	}
+
+	.section-card-header {
+	  display: flex;
+	  align-items: center;
+	  gap: var(--spacing);
+	  padding: var(--spacing);
+	  background-color: var(--figma-color-bg-secondary);
+	  cursor: pointer;
+	}
+
+	.section-card-header input[type="checkbox"] {
+	  width: 18px;
+	  height: 18px;
+	  cursor: pointer;
+	}
+
+	.section-card-info {
+	  flex: 1;
+	}
+
+	.section-card-title {
+	  font-weight: 600;
+	  font-size: 0.95rem;
+	}
+
+	.section-card-description {
+	  font-size: 0.8rem;
+	  color: var(--figma-color-text-secondary);
+	  margin-top: 2px;
+	}
+
+	.section-card-badges {
+	  display: flex;
+	  gap: calc(var(--spacing) / 2);
+	}
+
+	.badge {
+	  padding: 2px 8px;
+	  border-radius: 10px;
+	  font-size: 0.7rem;
+	  font-weight: bold;
+	}
+
+	.badge.count {
+	  background-color: var(--figma-color-bg-brand);
+	  color: var(--figma-color-text-onbrand);
+	}
+
+	.badge.exists {
+	  background-color: #f0ad4e;
+	  color: #000;
+	}
+
+	.badge.new {
+	  background-color: #5cb85c;
+	  color: #fff;
+	}
+
+	.section-card-preview {
+	  padding: calc(var(--spacing) / 2) var(--spacing);
+	  background-color: var(--figma-color-bg);
+	  border-top: 1px solid var(--figma-color-border);
+	  max-height: 120px;
+	  overflow-y: auto;
+	}
+
+	.variable-preview-list {
+	  display: flex;
+	  flex-wrap: wrap;
+	  gap: calc(var(--spacing) / 4);
+	}
+
+	.variable-tag {
+	  background-color: var(--figma-color-bg-secondary);
+	  padding: 2px 8px;
+	  border-radius: 4px;
+	  font-size: 0.75rem;
+	  font-family: monospace;
+	  display: flex;
+	  align-items: center;
+	  gap: 4px;
+	}
+
+	.variable-tag.exists {
+	  opacity: 0.5;
+	  text-decoration: line-through;
+	}
+
+	.color-swatch {
+	  width: 12px;
+	  height: 12px;
+	  border-radius: 2px;
+	  border: 1px solid var(--figma-color-border);
+	}
+
+	/* Options section */
+	.options-section {
+	  background-color: var(--figma-color-bg-secondary);
+	  padding: var(--spacing);
+	  border-radius: 4px;
+	  flex-shrink: 0;
+	}
+
+	.option-row {
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 2);
+	  margin-bottom: calc(var(--spacing) / 2);
+	}
+
+	.option-row:last-child {
+	  margin-bottom: 0;
+	}
+
+	.option-row label {
+	  font-size: 0.9rem;
+	  cursor: pointer;
+	}
+
+	.option-row select {
+	  padding: calc(var(--spacing) / 4) calc(var(--spacing) / 2);
+	  border-radius: 4px;
+	  border: 1px solid var(--figma-color-border);
+	  background-color: var(--figma-color-bg);
+	  color: var(--figma-color-text);
+	}
+
+	/* Warnings */
+	.warnings-section {
+	  background-color: #fff3cd;
+	  border: 1px solid #ffc107;
+	  border-radius: 4px;
+	  padding: calc(var(--spacing) / 2);
+	  margin-bottom: var(--spacing);
+	  flex-shrink: 0;
+	}
+
+	.warnings-title {
+	  font-weight: 600;
+	  color: #856404;
+	  font-size: 0.85rem;
+	  margin-bottom: calc(var(--spacing) / 4);
+	}
+
+	.warnings-list {
+	  list-style: none;
+	  padding: 0;
+	  margin: 0;
+	  max-height: 80px;
+	  overflow-y: auto;
+	}
+
+	.warnings-list li {
+	  font-size: 0.8rem;
+	  color: #856404;
+	  padding: 2px 0;
+	}
+
+	/* Info banner */
+	.info-banner {
+	  background-color: var(--figma-color-bg-secondary);
+	  border: 1px solid var(--figma-color-border);
+	  border-radius: 4px;
+	  padding: calc(var(--spacing) / 2) var(--spacing);
+	  margin-bottom: var(--spacing);
+	  font-size: 0.85rem;
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 2);
+	}
+
+	.info-banner.success {
+	  background-color: rgba(92, 184, 92, 0.1);
+	  border-color: rgba(92, 184, 92, 0.3);
+	}
+
+	/* Results section */
+	.results-section {
+	  flex: 1;
+	  overflow-y: auto;
+	  min-height: 0;
+	}
+
+	.result-summary {
+	  background-color: var(--figma-color-bg-secondary);
+	  padding: var(--spacing);
+	  border-radius: 4px;
+	  margin-bottom: var(--spacing);
+	}
+
+	.result-summary.success {
+	  background-color: rgba(0, 180, 0, 0.1);
+	  border: 1px solid rgba(0, 180, 0, 0.3);
+	}
+
+	.result-summary.error {
+	  background-color: rgba(255, 0, 0, 0.1);
+	  border: 1px solid rgba(255, 0, 0, 0.3);
+	}
+
+	.result-stat {
+	  display: flex;
+	  justify-content: space-between;
+	  font-size: 0.9rem;
+	  padding: calc(var(--spacing) / 4) 0;
+	}
+
+	.result-stat-value {
+	  font-weight: 600;
+	}
+
+	.result-collections {
+	  margin-top: var(--spacing);
+	}
+
+	.result-collection {
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	  padding: calc(var(--spacing) / 2);
+	  background-color: var(--figma-color-bg);
+	  border: 1px solid var(--figma-color-border);
+	  border-radius: 4px;
+	  margin-bottom: calc(var(--spacing) / 2);
+	  font-size: 0.9rem;
+	}
+
+	/* Loading state */
+	.loading {
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  gap: var(--spacing);
+	  padding: var(--spacing);
+	  color: var(--figma-color-text-secondary);
+	  font-style: italic;
+	}
+
+	@keyframes spin {
+	  to { transform: rotate(360deg); }
+	}
+
+	.spinner {
+	  width: 16px;
+	  height: 16px;
+	  border: 2px solid var(--figma-color-border);
+	  border-top-color: var(--figma-color-bg-brand);
+	  border-radius: 50%;
+	  animation: spin 1s linear infinite;
+	}
+
+	/* Resize handle */
+	.resize-handle {
+	  position: absolute;
+	  bottom: 0;
+	  right: 0;
+	  width: 20px;
+	  height: 20px;
+	  cursor: nwse-resize;
+	  z-index: 100;
+	  opacity: 0.7;
+	}
+
+	.resize-handle:before,
+	.resize-handle:after {
+	  content: "";
+	  position: absolute;
+	  background-color: var(--figma-color-border);
+	}
+
+	.resize-handle:before {
+	  width: 2px;
+	  height: 12px;
+	  bottom: 3px;
+	  right: 8px;
+	  transform: rotate(45deg);
+	}
+
+	.resize-handle:after {
+	  width: 12px;
+	  height: 2px;
+	  bottom: 8px;
+	  right: 3px;
+	  transform: rotate(45deg);
+	}
+
+	.resize-overlay {
+	  position: fixed;
+	  top: 0;
+	  left: 0;
+	  width: 100%;
+	  height: 100%;
+	  z-index: 99;
+	  display: none;
+	  cursor: nwse-resize;
+	}
+</style>
+
+<main>
+	<!-- Step Navigation -->
+	<div class="step-navigation">
+		<div class="step-indicator active" data-step="1">
+			<span>1</span>
+			<span>Select</span>
+		</div>
+		<div class="step-indicator" data-step="2">
+			<span>2</span>
+			<span>Configure</span>
+		</div>
+		<div class="step-indicator" data-step="3">
+			<span>3</span>
+			<span>Create</span>
+		</div>
+	</div>
+
+	<!-- Step 1: Select Sections -->
+	<div class="step-content active" id="step-1">
+		<div class="info-text">
+			Select which variable collections to create based on the WordPress theme.json schema.
+			Existing variables will be preserved (skipped by default).
+		</div>
+
+		<div class="section-list" id="section-list">
+			<div class="loading" id="sections-loading">
+				<div class="spinner"></div>
+				<span>Loading sections...</span>
+			</div>
+		</div>
+
+		<div class="step-actions">
+			<div></div>
+			<button type="button" class="step-button primary" id="next-to-step-2" disabled>Next: Configure</button>
+		</div>
+	</div>
+
+	<!-- Step 2: Configure Options -->
+	<div class="step-content" id="step-2">
+		<div class="info-text">
+			Configure how variables should be created.
+		</div>
+
+		<div class="options-section">
+			<div class="option-row">
+				<label for="conflict-strategy">When variable exists:</label>
+				<select id="conflict-strategy">
+					<option value="skip" selected>Skip (preserve existing)</option>
+					<option value="overwrite">Overwrite (replace with placeholder)</option>
+					<option value="rename">Rename (create new collection)</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="warnings-section" id="warnings-section" style="display: none;">
+			<div class="warnings-title">Existing Collections Detected</div>
+			<ul class="warnings-list" id="warnings-list"></ul>
+		</div>
+
+		<div class="info-banner" id="schema-source-banner">
+			Using default placeholder values based on WordPress conventions.
+		</div>
+
+		<div class="section-list" id="preview-section">
+			<!-- Preview will be populated here -->
+		</div>
+
+		<div class="step-actions">
+			<button type="button" class="step-button secondary" id="back-to-step-1">Back</button>
+			<button type="button" class="step-button primary" id="next-to-step-3">Create Variables</button>
+		</div>
+	</div>
+
+	<!-- Step 3: Create -->
+	<div class="step-content" id="step-3">
+		<div class="info-text" id="step-3-info">
+			Creating variables...
+		</div>
+
+		<div class="results-section" id="results-section">
+			<div class="loading" id="create-loading">
+				<div class="spinner"></div>
+				<span>Creating collections and variables...</span>
+			</div>
+
+			<div class="result-summary" id="result-summary" style="display: none;">
+				<div class="result-stat">
+					<span>Collections created:</span>
+					<span class="result-stat-value" id="collections-created">0</span>
+				</div>
+				<div class="result-stat">
+					<span>Variables created:</span>
+					<span class="result-stat-value" id="variables-created">0</span>
+				</div>
+				<div class="result-stat">
+					<span>Variables skipped:</span>
+					<span class="result-stat-value" id="variables-skipped">0</span>
+				</div>
+
+				<div class="result-collections" id="result-collections"></div>
+			</div>
+
+			<div class="warnings-section" id="result-warnings-section" style="display: none;">
+				<div class="warnings-title">Warnings</div>
+				<ul class="warnings-list" id="result-warnings-list"></ul>
+			</div>
+		</div>
+
+		<div class="step-actions">
+			<button type="button" class="step-button secondary" id="back-to-step-2" style="display: none;">Back</button>
+			<button type="button" class="step-button primary" id="create-another" style="display: none;">Create More</button>
+		</div>
+	</div>
+</main>
+
+<div class="resize-handle" id="resize-handle"></div>
+<div class="resize-overlay" id="resize-overlay"></div>
+
+<script>
+	let currentStep = 1;
+	let previewData = null;
+	let selectedSections = {
+		colors: true,
+		typography: true,
+		spacing: true
+	};
+
+	// Resize functionality
+	const resizeHandle = document.getElementById('resize-handle');
+	const resizeOverlay = document.getElementById('resize-overlay');
+	let isResizing = false;
+	let initialWidth, initialHeight, initialX, initialY;
+
+	resizeHandle.addEventListener('mousedown', initResize);
+
+	function initResize(e) {
+		e.preventDefault();
+		initialWidth = window.innerWidth;
+		initialHeight = window.innerHeight;
+		initialX = e.clientX;
+		initialY = e.clientY;
+		resizeOverlay.style.display = 'block';
+		isResizing = true;
+		window.addEventListener('mousemove', resizeWindow);
+		window.addEventListener('mouseup', stopResize);
+	}
+
+	function resizeWindow(e) {
+		if (!isResizing) return;
+		const newWidth = initialWidth + (e.clientX - initialX);
+		const newHeight = initialHeight + (e.clientY - initialY);
+		const width = Math.max(300, newWidth);
+		const height = Math.max(300, newHeight);
+		parent.postMessage({
+			pluginMessage: { type: "RESIZE", width, height }
+		}, "*");
+	}
+
+	function stopResize() {
+		isResizing = false;
+		resizeOverlay.style.display = 'none';
+		window.removeEventListener('mousemove', resizeWindow);
+		window.removeEventListener('mouseup', stopResize);
+	}
+
+	// Load initial preview
+	function loadPreview() {
+		parent.postMessage({
+			pluginMessage: {
+				type: "PREVIEW_SCHEMA_CREATE",
+				options: { sections: selectedSections }
+			}
+		}, "*");
+	}
+
+	// Render section cards
+	function renderSections(sections) {
+		const container = document.getElementById('section-list');
+		container.innerHTML = '';
+
+		sections.forEach(section => {
+			const card = document.createElement('div');
+			card.className = `section-card ${selectedSections[section.id] ? 'selected' : ''}`;
+			card.dataset.sectionId = section.id;
+
+			const newCount = section.variableCount - section.existingCount;
+
+			card.innerHTML = `
+				<div class="section-card-header">
+					<input type="checkbox" ${selectedSections[section.id] ? 'checked' : ''} data-section="${section.id}" />
+					<div class="section-card-info">
+						<div class="section-card-title">${section.displayName}</div>
+						<div class="section-card-description">${section.collectionName}</div>
+					</div>
+					<div class="section-card-badges">
+						${section.collectionExists ? '<span class="badge exists">Exists</span>' : ''}
+						<span class="badge ${newCount > 0 ? 'new' : 'count'}">${newCount > 0 ? newCount + ' new' : section.variableCount + ' vars'}</span>
+					</div>
+				</div>
+				<div class="section-card-preview">
+					<div class="variable-preview-list">
+						${section.variables.map(v => `
+							<span class="variable-tag ${v.exists ? 'exists' : ''}">
+								${section.id === 'colors' ? `<span class="color-swatch" style="background-color: ${v.value}"></span>` : ''}
+								${v.name}${v.exists ? ' (exists)' : ''}
+							</span>
+						`).join('')}
+					</div>
+				</div>
+			`;
+
+			// Handle checkbox change
+			const checkbox = card.querySelector('input[type="checkbox"]');
+			checkbox.addEventListener('change', (e) => {
+				selectedSections[section.id] = e.target.checked;
+				card.classList.toggle('selected', e.target.checked);
+				updateNextButton();
+			});
+
+			// Handle header click (toggle checkbox)
+			const header = card.querySelector('.section-card-header');
+			header.addEventListener('click', (e) => {
+				if (e.target.type !== 'checkbox') {
+					checkbox.checked = !checkbox.checked;
+					checkbox.dispatchEvent(new Event('change'));
+				}
+			});
+
+			container.appendChild(card);
+		});
+
+		updateNextButton();
+	}
+
+	function updateNextButton() {
+		const anySelected = Object.values(selectedSections).some(v => v);
+		document.getElementById('next-to-step-2').disabled = !anySelected;
+	}
+
+	// Render preview for step 2
+	function renderPreview(sections) {
+		const container = document.getElementById('preview-section');
+		container.innerHTML = '';
+
+		const selectedSectionData = sections.filter(s => selectedSections[s.id]);
+
+		selectedSectionData.forEach(section => {
+			const card = document.createElement('div');
+			card.className = 'section-card selected';
+
+			const newCount = section.variableCount - section.existingCount;
+
+			card.innerHTML = `
+				<div class="section-card-header" style="cursor: default;">
+					<div class="section-card-info">
+						<div class="section-card-title">${section.displayName}</div>
+						<div class="section-card-description">${section.collectionName}</div>
+					</div>
+					<div class="section-card-badges">
+						${section.existingCount > 0 ? `<span class="badge exists">${section.existingCount} exist</span>` : ''}
+						<span class="badge new">${newCount} to create</span>
+					</div>
+				</div>
+				<div class="section-card-preview">
+					<div class="variable-preview-list">
+						${section.variables.map(v => `
+							<span class="variable-tag ${v.exists ? 'exists' : ''}">
+								${section.id === 'colors' ? `<span class="color-swatch" style="background-color: ${v.value}"></span>` : ''}
+								${v.name}${v.exists ? ' (skip)' : ''}
+							</span>
+						`).join('')}
+					</div>
+				</div>
+			`;
+
+			container.appendChild(card);
+		});
+	}
+
+	// Step navigation
+	function showStep(step) {
+		document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+		document.querySelectorAll('.step-indicator').forEach(i => {
+			i.classList.remove('active', 'completed');
+			const indicatorStep = parseInt(i.dataset.step);
+			if (indicatorStep === step) {
+				i.classList.add('active');
+			} else if (indicatorStep < step) {
+				i.classList.add('completed');
+			}
+		});
+		document.getElementById(`step-${step}`).classList.add('active');
+		currentStep = step;
+
+		if (step === 2 && previewData) {
+			renderPreview(previewData.sections);
+
+			// Show warnings for existing collections
+			const existingCollections = previewData.existingCollections;
+			if (existingCollections.length > 0) {
+				document.getElementById('warnings-section').style.display = 'block';
+				document.getElementById('warnings-list').innerHTML = existingCollections.map(c =>
+					`<li>${c.name}: ${c.variableCount} existing variable(s)</li>`
+				).join('');
+			} else {
+				document.getElementById('warnings-section').style.display = 'none';
+			}
+
+			// Update schema source banner
+			const banner = document.getElementById('schema-source-banner');
+			if (previewData.schemaSource === 'fetched') {
+				banner.textContent = 'Using WordPress theme.json schema definitions.';
+				banner.classList.add('success');
+			} else {
+				banner.textContent = 'Using default placeholder values based on WordPress conventions.';
+				banner.classList.remove('success');
+			}
+		} else if (step === 3) {
+			runCreate();
+		}
+	}
+
+	document.querySelectorAll('.step-indicator').forEach(indicator => {
+		indicator.addEventListener('click', () => {
+			const step = parseInt(indicator.dataset.step);
+			if (step <= currentStep) {
+				showStep(step);
+			}
+		});
+	});
+
+	document.getElementById('next-to-step-2').addEventListener('click', () => showStep(2));
+	document.getElementById('back-to-step-1').addEventListener('click', () => showStep(1));
+	document.getElementById('next-to-step-3').addEventListener('click', () => showStep(3));
+	document.getElementById('back-to-step-2').addEventListener('click', () => showStep(2));
+	document.getElementById('create-another').addEventListener('click', () => {
+		selectedSections = { colors: true, typography: true, spacing: true };
+		loadPreview();
+		showStep(1);
+	});
+
+	function runCreate() {
+		const createLoading = document.getElementById('create-loading');
+		const resultSummary = document.getElementById('result-summary');
+		const resultWarningsSection = document.getElementById('result-warnings-section');
+		const backButton = document.getElementById('back-to-step-2');
+		const createAnotherButton = document.getElementById('create-another');
+
+		createLoading.style.display = 'flex';
+		resultSummary.style.display = 'none';
+		resultWarningsSection.style.display = 'none';
+		backButton.style.display = 'none';
+		createAnotherButton.style.display = 'none';
+
+		const options = {
+			sections: selectedSections,
+			conflictStrategy: document.getElementById('conflict-strategy').value
+		};
+
+		parent.postMessage({
+			pluginMessage: { type: "CREATE_FROM_SCHEMA", options }
+		}, "*");
+	}
+
+	// Message handling
+	window.onmessage = ({ data: { pluginMessage } }) => {
+		if (pluginMessage.type === "PREVIEW_SCHEMA_CREATE_RESULT") {
+			const loading = document.getElementById('sections-loading');
+			if (loading) loading.style.display = 'none';
+
+			if (pluginMessage.error) {
+				document.getElementById('section-list').innerHTML =
+					`<div class="info-banner" style="color: #990000;">${pluginMessage.error}</div>`;
+				return;
+			}
+
+			previewData = pluginMessage.preview;
+			renderSections(previewData.sections);
+		} else if (pluginMessage.type === "CREATE_FROM_SCHEMA_RESULT") {
+			const createLoading = document.getElementById('create-loading');
+			const resultSummary = document.getElementById('result-summary');
+			const resultWarningsSection = document.getElementById('result-warnings-section');
+			const resultWarningsList = document.getElementById('result-warnings-list');
+			const backButton = document.getElementById('back-to-step-2');
+			const createAnotherButton = document.getElementById('create-another');
+
+			createLoading.style.display = 'none';
+
+			if (pluginMessage.error) {
+				resultSummary.style.display = 'block';
+				resultSummary.className = 'result-summary error';
+				resultSummary.innerHTML = `<div style="color: #990000;"><strong>Creation failed:</strong> ${pluginMessage.error}</div>`;
+				backButton.style.display = 'inline';
+				return;
+			}
+
+			const result = pluginMessage.result;
+
+			resultSummary.style.display = 'block';
+			resultSummary.className = `result-summary ${result.success ? 'success' : 'error'}`;
+
+			document.getElementById('collections-created').textContent = result.collectionsCreated;
+			document.getElementById('variables-created').textContent = result.variablesCreated;
+			document.getElementById('variables-skipped').textContent = result.skipped;
+
+			// Show created collections
+			const collectionsDiv = document.getElementById('result-collections');
+			collectionsDiv.innerHTML = '';
+
+			if (result.collections.length > 0) {
+				result.collections.forEach(c => {
+					const item = document.createElement('div');
+					item.className = 'result-collection';
+					item.innerHTML = `<span>${c.name}</span><span>${c.variableCount} variables</span>`;
+					collectionsDiv.appendChild(item);
+				});
+			}
+
+			// Show warnings
+			if (result.warnings.length > 0) {
+				resultWarningsSection.style.display = 'block';
+				resultWarningsList.innerHTML = result.warnings.map(w => `<li>${w}</li>`).join('');
+			}
+
+			createAnotherButton.style.display = 'inline';
+
+			// Update info text
+			document.getElementById('step-3-info').textContent =
+				result.success ? 'Variables created successfully!' : 'Creation completed with errors.';
+		}
+	};
+
+	// Initial load
+	loadPreview();
+</script>
