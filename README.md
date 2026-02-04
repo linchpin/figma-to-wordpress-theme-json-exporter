@@ -74,7 +74,7 @@ This Figma plugin converts Figma design tokens and variables into WordPress them
    - Check "Generate typography presets from text styles"
    - The plugin will convert all local text styles in your Figma document
    - Typography presets are added to `settings.custom.typography.presets`
-   - See [TYPOGRAPHY-GUIDE.md](TYPOGRAPHY-GUIDE.md) for detailed information
+   - See [TYPOGRAPHY-GUIDE.md](wiki/TYPOGRAPHY-GUIDE.md) for detailed information
 
 4. **Color Presets:**
    - Check "Generate color presets from color variables"
@@ -82,13 +82,13 @@ This Figma plugin converts Figma design tokens and variables into WordPress them
    - Use the color selection modal to choose which variables to include
    - Color presets are added to `settings.color.palette`
    - Supports preview of actual color values and organized by collection
-   - See [COLOR-PRESETS-GUIDE.md](COLOR-PRESETS-GUIDE.md) for detailed information
+   - See [COLOR-PRESETS-GUIDE.md](wiki/COLOR-PRESETS-GUIDE.md) for detailed information
 
 5. **Spacing Presets:**
    - Check "Generate spacing presets from spacing variables"
    - The plugin automatically detects spacing-related variables
    - Spacing presets are added to `settings.spacing.spacingSizes`
-   - See [SPACING-GUIDE.md](SPACING-GUIDE.md) for detailed information
+   - See [SPACING-GUIDE.md](wiki/SPACING-GUIDE.md) for detailed information
 
 ### Plugin Interface Features
 
@@ -284,7 +284,7 @@ For more information on the WordPress theme.json format, see the [WordPress docu
 
 ## Color Presets
 
-The plugin can generate WordPress color presets from your Figma color variables, making them available in the WordPress block editor's color picker. For comprehensive information about this feature, see [COLOR-PRESETS-GUIDE.md](COLOR-PRESETS-GUIDE.md).
+The plugin can generate WordPress color presets from your Figma color variables, making them available in the WordPress block editor's color picker. For comprehensive information about this feature, see [COLOR-PRESETS-GUIDE.md](wiki/COLOR-PRESETS-GUIDE.md).
 
 ### Quick Overview
 
@@ -295,7 +295,7 @@ The plugin can generate WordPress color presets from your Figma color variables,
 
 ## Spacing Presets
 
-The plugin automatically generates WordPress spacing presets from Figma spacing variables. For detailed information about spacing presets, see [SPACING-GUIDE.md](SPACING-GUIDE.md).
+The plugin automatically generates WordPress spacing presets from Figma spacing variables. For detailed information about spacing presets, see [SPACING-GUIDE.md](wiki/SPACING-GUIDE.md).
 
 ### Quick Overview
 
@@ -357,15 +357,15 @@ All files are packed into a single zip download for easy use in WordPress themes
 
 For comprehensive information on specific features, see these detailed guides:
 
-- **[INSTALL.md](INSTALL.md)** - Complete installation and setup instructions
-- **[NAMING-CONVENTIONS.md](NAMING-CONVENTIONS.md)** - Complete naming conventions reference for collections and variables
-- **[BLOCKS-GUIDE.md](BLOCKS-GUIDE.md)** - Block-level styling with `wp.blocks.*` collections
-- **[ELEMENTS-GUIDE.md](ELEMENTS-GUIDE.md)** - Element-level styling with `wp.elements.*` collections
-- **[TYPOGRAPHY-GUIDE.md](TYPOGRAPHY-GUIDE.md)** - Typography presets and text style conversion
-- **[COLOR-PRESETS-GUIDE.md](COLOR-PRESETS-GUIDE.md)** - Color presets and customization modal
-- **[SPACING-GUIDE.md](SPACING-GUIDE.md)** - Spacing presets and variable detection
-- **[FLUID-VARIABLES-GUIDE.md](FLUID-VARIABLES-GUIDE.md)** - Responsive/fluid variables setup
-- **[DEVELOPER.md](DEVELOPER.md)** - Architecture, code structure, and contribution guide for developers
+- **[INSTALL.md](wiki/INSTALL.md)** - Complete installation and setup instructions
+- **[NAMING-CONVENTIONS.md](wiki/NAMING-CONVENTIONS.md)** - Complete naming conventions reference for collections and variables
+- **[BLOCKS-GUIDE.md](wiki/BLOCKS-GUIDE.md)** - Block-level styling with `wp.blocks.*` collections
+- **[ELEMENTS-GUIDE.md](wiki/ELEMENTS-GUIDE.md)** - Element-level styling with `wp.elements.*` collections
+- **[TYPOGRAPHY-GUIDE.md](wiki/TYPOGRAPHY-GUIDE.md)** - Typography presets and text style conversion
+- **[COLOR-PRESETS-GUIDE.md](wiki/COLOR-PRESETS-GUIDE.md)** - Color presets and customization modal
+- **[SPACING-GUIDE.md](wiki/SPACING-GUIDE.md)** - Spacing presets and variable detection
+- **[FLUID-VARIABLES-GUIDE.md](wiki/FLUID-VARIABLES-GUIDE.md)** - Responsive/fluid variables setup
+- **[DEVELOPER.md](wiki/DEVELOPER.md)** - Architecture, code structure, and contribution guide for developers
 
 ## Development
 
@@ -383,7 +383,7 @@ npm run watch      # Watch for changes during development
 npm run build      # Build for production
 ```
 
-For architecture details and contribution guidelines, see [DEVELOPER.md](DEVELOPER.md).
+For architecture details and contribution guidelines, see [DEVELOPER.md](wiki/DEVELOPER.md).
 
 ## Support
 
@@ -394,19 +394,31 @@ For architecture details and contribution guidelines, see [DEVELOPER.md](DEVELOP
 
 ## Contributing
 
-This project uses [Changesets](https://github.com/changesets/changesets) for version management. When contributing:
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for commit messages, enforced via [commitlint](https://commitlint.js.org/) and [husky](https://typicode.github.io/husky/). Releases are automated using [Release Please](https://github.com/googleapis/release-please).
 
-```bash
-npm run changeset   # Create a changeset for your changes
+### Commit Message Format
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+[optional footer(s)]
 ```
 
-| Change Type | Version | Use Case |
-| ----------- | ------- | -------- |
-| **Patch** | 0.0.X | Bug fixes, documentation, internal changes |
-| **Minor** | 0.X.0 | New features, backwards-compatible enhancements |
-| **Major** | X.0.0 | Breaking changes |
+| Type | Description |
+| ---- | ----------- |
+| **feat** | New feature (triggers minor version bump) |
+| **fix** | Bug fix (triggers patch version bump) |
+| **docs** | Documentation only |
+| **style** | Code style changes (formatting, etc.) |
+| **refactor** | Code refactoring |
+| **perf** | Performance improvements |
+| **test** | Adding or updating tests |
+| **build** | Build system or dependencies |
+| **ci** | CI/CD configuration |
+| **chore** | Other changes |
 
-All pull requests require a changeset (except docs-only changes). When merged to main, a Release PR will be created automatically.
+When commits are merged to develop, Release Please automatically creates a Release PR with updated changelog and version bump.
 
 ## Credits
 
