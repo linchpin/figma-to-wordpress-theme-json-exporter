@@ -136,7 +136,7 @@ export async function createSpacingCollection(
 			} else {
 				variable = figma.variables.createVariable(
 					variableName,
-					collection.id,
+					collection,
 					'FLOAT'
 				);
 				result.variablesCreated++;

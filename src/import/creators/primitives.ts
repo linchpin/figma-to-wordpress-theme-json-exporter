@@ -97,7 +97,7 @@ export async function createPrimitivesCollection(
 				// Create new variable
 				variable = figma.variables.createVariable(
 					path,
-					collection.id,
+					collection,
 					type
 				);
 				result.variablesCreated++;
