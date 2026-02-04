@@ -8,6 +8,7 @@
   "networkAccess": {
       "allowedDomains": ["https://cdnjs.cloudflare.com",
       "https://schemas.wp.org/trunk/theme.json",
+      "https://raw.githubusercontent.com",
       "https://fonts.googleapis.com",
       "https://fonts.gstatic.com"
     ]
@@ -15,11 +16,13 @@
   "menu": [
     { "command": "export", "name": "Export to theme.json" },
     { "command": "import", "name": "Import from theme.json" },
+    { "command": "create-from-schema", "name": "Create from Schema" },
     { "command": "css-vars", "name": "Apply CSS Variable Syntax" }
   ],
   "ui": {
     "export": "export.html",
     "import": "import.html",
+    "create-from-schema": "create-from-schema.html",
     "css-vars": "css-vars.html"
   },
   "documentAccess": "dynamic-page"

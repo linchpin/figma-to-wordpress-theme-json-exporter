@@ -7,6 +7,7 @@ import { applyCssVarSyntaxToVariables } from './utils/figma-variables';
 import { getDetectedBlocks } from './collections/processors/wp-blocks';
 import { isWordPressBlocksCollection, extractWordPressBlockName, isCoreBlock } from './utils/index';
 import { importFromThemeJSON, validateThemeJSON, previewImport, checkExistingCollections, ImportOptions } from './import/index';
+import { createFromSchema, previewSchemaCreate, checkExistingSchemaCollections, SchemaCreateOptions } from './schema/index';
 
 figma.ui.onmessage = async (e) => {
 	console.log("code received message", e);
@@ -171,6 +172,55 @@ figma.ui.onmessage = async (e) => {
 			});
 		}
 	}
+	// ==========================================================================
+	// Schema-based Creation Message Handlers
+	// ==========================================================================
+	else if (e.type === "PREVIEW_SCHEMA_CREATE") {
+		// Preview what schema-based creation will produce
+		try {
+			const { options } = e;
+			const preview = await previewSchemaCreate(options || {});
+			figma.ui.postMessage({
+				type: "PREVIEW_SCHEMA_CREATE_RESULT",
+				preview
+			});
+		} catch (error) {
+			figma.ui.postMessage({
+				type: "PREVIEW_SCHEMA_CREATE_RESULT",
+				error: error instanceof Error ? error.message : "Preview failed"
+			});
+		}
+	} else if (e.type === "CREATE_FROM_SCHEMA") {
+		// Create variables from schema
+		try {
+			const options: SchemaCreateOptions = e.options;
+			const result = await createFromSchema(options);
+			figma.ui.postMessage({
+				type: "CREATE_FROM_SCHEMA_RESULT",
+				result
+			});
+		} catch (error) {
+			figma.ui.postMessage({
+				type: "CREATE_FROM_SCHEMA_RESULT",
+				error: error instanceof Error ? error.message : "Creation failed"
+			});
+		}
+	} else if (e.type === "CHECK_SCHEMA_COLLECTIONS") {
+		// Check for existing collections that would conflict
+		try {
+			const { collectionNames } = e;
+			const existing = await checkExistingSchemaCollections(collectionNames || []);
+			figma.ui.postMessage({
+				type: "CHECK_SCHEMA_COLLECTIONS_RESULT",
+				existing
+			});
+		} catch (error) {
+			figma.ui.postMessage({
+				type: "CHECK_SCHEMA_COLLECTIONS_RESULT",
+				error: error instanceof Error ? error.message : "Check failed"
+			});
+		}
+	}
 };
 
 if (figma.command === "export") {
@@ -181,6 +231,12 @@ if (figma.command === "export") {
 	});
 } else if (figma.command === "import") {
 	figma.showUI(__uiFiles__["import"], {
+		width: 600,
+		height: 650,
+		themeColors: true,
+	});
+} else if (figma.command === "create-from-schema") {
+	figma.showUI(__uiFiles__["create-from-schema"], {
 		width: 600,
 		height: 650,
 		themeColors: true,
