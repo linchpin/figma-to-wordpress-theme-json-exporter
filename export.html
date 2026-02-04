@@ -797,6 +797,170 @@
 	.wordpress-settings-color .color-slug {
 	  color: var(--figma-color-text-secondary);
 	}
+
+	/* Extended Settings Styles */
+	.extended-settings {
+	  background-color: var(--figma-color-bg);
+	  padding: calc(var(--spacing) / 2);
+	  border-radius: 4px;
+	  margin-top: calc(var(--spacing) / 2);
+	  border: 1px solid var(--figma-color-border);
+	}
+
+	.extended-settings-title {
+	  font-weight: 600;
+	  margin-bottom: calc(var(--spacing) / 2);
+	  color: var(--figma-color-text);
+	  font-size: 0.85rem;
+	}
+
+	.extended-settings-grid {
+	  display: grid;
+	  grid-template-columns: repeat(2, 1fr);
+	  gap: calc(var(--spacing) / 4);
+	}
+
+	.extended-settings-grid .option-row {
+	  font-size: 0.85rem;
+	}
+
+	/* Block Detection Styles */
+	.blocks-section {
+	  background-color: var(--figma-color-bg);
+	  padding: calc(var(--spacing) / 2);
+	  border-radius: 4px;
+	  margin-top: calc(var(--spacing) / 2);
+	  border: 1px solid var(--figma-color-border);
+	}
+
+	.blocks-header {
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	  cursor: pointer;
+	}
+
+	.blocks-title {
+	  font-weight: 600;
+	  color: var(--figma-color-text);
+	  font-size: 0.85rem;
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 2);
+	}
+
+	.blocks-count {
+	  background-color: var(--figma-color-bg-secondary);
+	  padding: 2px 8px;
+	  border-radius: 10px;
+	  font-size: 0.7rem;
+	  font-weight: normal;
+	}
+
+	.blocks-toggle-icon {
+	  transition: transform 0.2s;
+	  font-size: 0.8rem;
+	}
+
+	.blocks-toggle-icon.collapsed {
+	  transform: rotate(-90deg);
+	}
+
+	.blocks-list {
+	  margin-top: calc(var(--spacing) / 2);
+	  display: flex;
+	  flex-direction: column;
+	  gap: calc(var(--spacing) / 4);
+	  max-height: 150px;
+	  overflow-y: auto;
+	}
+
+	.blocks-list.collapsed {
+	  display: none;
+	}
+
+	.block-item {
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 2);
+	  padding: calc(var(--spacing) / 4) calc(var(--spacing) / 2);
+	  background-color: var(--figma-color-bg-secondary);
+	  border-radius: 4px;
+	  font-size: 0.8rem;
+	}
+
+	.block-name {
+	  font-family: monospace;
+	  flex: 1;
+	}
+
+	.badge-core {
+	  background-color: #0073aa;
+	  color: white;
+	  padding: 2px 6px;
+	  border-radius: 10px;
+	  font-size: 0.65rem;
+	  font-weight: bold;
+	}
+
+	.badge-custom {
+	  background-color: #8e44ad;
+	  color: white;
+	  padding: 2px 6px;
+	  border-radius: 10px;
+	  font-size: 0.65rem;
+	  font-weight: bold;
+	}
+
+	.blocks-empty {
+	  color: var(--figma-color-text-secondary);
+	  font-style: italic;
+	  font-size: 0.8rem;
+	  padding: calc(var(--spacing) / 4);
+	}
+
+	/* Validation Warnings Styles */
+	.validation-warnings {
+	  background-color: #fff3cd;
+	  border: 1px solid #ffc107;
+	  border-radius: 4px;
+	  padding: calc(var(--spacing) / 2);
+	  margin-bottom: var(--spacing);
+	  display: none;
+	}
+
+	.validation-warnings.visible {
+	  display: block;
+	}
+
+	.validation-warnings-title {
+	  font-weight: 600;
+	  color: #856404;
+	  margin-bottom: calc(var(--spacing) / 4);
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 2);
+	  font-size: 0.85rem;
+	}
+
+	.validation-warnings-list {
+	  list-style: none;
+	  padding: 0;
+	  margin: 0;
+	  max-height: 100px;
+	  overflow-y: auto;
+	}
+
+	.validation-warnings-list li {
+	  font-size: 0.8rem;
+	  color: #856404;
+	  padding: calc(var(--spacing) / 4) 0;
+	  border-bottom: 1px solid rgba(133, 100, 4, 0.2);
+	}
+
+	.validation-warnings-list li:last-child {
+	  border-bottom: none;
+	}
   </style>
     <main>
 	<!-- Step Navigation -->
@@ -937,6 +1101,48 @@
                 </div>
             </div>
 
+            <!-- Extended Settings group -->
+            <div class="options-group" id="extended-settings-options">
+                <h4 class="collections-group-title">Extended Settings</h4>
+                <div class="info-text" style="font-size: 0.8rem; margin-bottom: calc(var(--spacing) / 2);">
+                    <i>Enable additional WordPress theme.json settings sections. Collections named <code>wp.settings.{section}</code> will be processed.</i>
+                </div>
+                <div class="extended-settings">
+                    <div class="extended-settings-grid">
+                        <div class="option-row">
+                            <input type="checkbox" id="enable-background-settings" checked />
+                            <label for="enable-background-settings">Background</label>
+                        </div>
+                        <div class="option-row">
+                            <input type="checkbox" id="enable-border-settings" checked />
+                            <label for="enable-border-settings">Border</label>
+                        </div>
+                        <div class="option-row">
+                            <input type="checkbox" id="enable-dimensions-settings" checked />
+                            <label for="enable-dimensions-settings">Dimensions</label>
+                        </div>
+                        <div class="option-row">
+                            <input type="checkbox" id="enable-position-settings" checked />
+                            <label for="enable-position-settings">Position</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detected Blocks Section -->
+                <div class="blocks-section" id="blocks-section">
+                    <div class="blocks-header" id="blocks-header">
+                        <div class="blocks-title">
+                            Detected Blocks
+                            <span class="blocks-count" id="blocks-count">0</span>
+                        </div>
+                        <span class="blocks-toggle-icon" id="blocks-toggle-icon">▼</span>
+                    </div>
+                    <div class="blocks-list" id="blocks-list">
+                        <div class="blocks-empty">No block collections detected. Create collections named <code>wp.blocks.{namespace/block}</code> to style specific blocks.</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="file-upload">
 				<label class="file-upload-label">Base theme.json</label>
 				<div class="file-upload-row">
@@ -964,6 +1170,15 @@
 			<div id="export-summary">
 				Loading...
 			</div>
+		</div>
+
+		<!-- Validation Warnings -->
+		<div class="validation-warnings" id="validation-warnings">
+			<div class="validation-warnings-title">
+				⚠ Validation Warnings
+			</div>
+			<ul class="validation-warnings-list" id="validation-warnings-list">
+			</ul>
 		</div>
 
 		<div class="info-text">
@@ -1020,6 +1235,8 @@
 	let allCollections = [];
 	let selectedCollectionIds = [];
 	let currentStep = 1;
+	let detectedBlocks = [];
+	let validationWarnings = [];
 
 	// Setup resize functionality
 	const resizeHandle = document.getElementById('resize-handle');
@@ -1081,9 +1298,21 @@
 		  console.error("Error getting collections:", pluginMessage.error);
 		  return;
 		}
-		
+
 		allCollections = pluginMessage.collections || [];
 		populateCollections();
+		// Also request blocks detection
+		parent.postMessage({
+			pluginMessage: { type: "GET_BLOCKS" }
+		}, "*");
+	  } else if (pluginMessage.type === "BLOCKS_RESULT") {
+		if (pluginMessage.error) {
+		  console.error("Error getting blocks:", pluginMessage.error);
+		  return;
+		}
+
+		detectedBlocks = pluginMessage.blocks || [];
+		populateBlocksSection();
 	  } else if (pluginMessage.type === "COLOR_PRESETS_RESULT") {
 		if (pluginMessage.error) {
 		  console.error("Error getting color presets:", pluginMessage.error);
@@ -1101,6 +1330,10 @@
 		}
 
 		currentFiles = pluginMessage.files;
+
+		// Handle validation warnings if present
+		validationWarnings = pluginMessage.warnings || [];
+		displayValidationWarnings(validationWarnings);
 		
 		// Clear the files container
 		const filesContainer = document.getElementById('files-container');
@@ -1246,10 +1479,16 @@
 		primitives: document.getElementById("rem-primitives").checked,
 		spacing: document.getElementById("rem-spacing").checked
 	  } : undefined;
-	  
+
+	  // Get extended settings options
+	  const enableBackgroundSettings = document.getElementById("enable-background-settings").checked;
+	  const enableBorderSettings = document.getElementById("enable-border-settings").checked;
+	  const enableDimensionsSettings = document.getElementById("enable-dimensions-settings").checked;
+	  const enablePositionSettings = document.getElementById("enable-position-settings").checked;
+
 	  // Pass the options to the plugin
-	  parent.postMessage({ 
-		pluginMessage: { 
+	  parent.postMessage({
+		pluginMessage: {
 		  type: "EXPORT",
 		  options: {
 			generateTypography,
@@ -1260,9 +1499,13 @@
 			selectedCollections: selectedCollectionIds.length > 0 ? selectedCollectionIds : undefined,
 			useRem,
 			remCollections,
-			elementsColorExportMode
+			elementsColorExportMode,
+			enableBackgroundSettings,
+			enableBorderSettings,
+			enableDimensionsSettings,
+			enablePositionSettings
 		  }
-		} 
+		}
 	  }, "*");
 	});
 
@@ -1295,11 +1538,11 @@
 
 	function createAndDownloadZip(files) {
 	  const zip = new JSZip();
-	  
+
 	  // Add all files to the zip with proper directory structure
 	  files.forEach(file => {
 		const { fileName, body } = file;
-		
+
 		// Handle directory paths in the filename
 		if (fileName.includes('/')) {
 		  const folderPath = fileName.substring(0, fileName.lastIndexOf('/'));
@@ -1311,10 +1554,72 @@
 		  zip.file(fileName, JSON.stringify(body, null, 2));
 		}
 	  });
-	  
+
 	  // Generate the zip file and trigger download
 	  zip.generateAsync({ type: "blob" }).then(function(content) {
 		saveAs(content, "wordpress-theme-files.zip");
+	  });
+	}
+
+	// Blocks section functionality
+	function populateBlocksSection() {
+	  const blocksList = document.getElementById('blocks-list');
+	  const blocksCount = document.getElementById('blocks-count');
+
+	  blocksCount.textContent = detectedBlocks.length;
+
+	  if (detectedBlocks.length === 0) {
+		blocksList.innerHTML = '<div class="blocks-empty">No block collections detected. Create collections named <code>wp.blocks.{namespace/block}</code> to style specific blocks.</div>';
+		return;
+	  }
+
+	  blocksList.innerHTML = '';
+
+	  detectedBlocks.forEach(block => {
+		const blockItem = document.createElement('div');
+		blockItem.className = 'block-item';
+
+		const blockName = document.createElement('span');
+		blockName.className = 'block-name';
+		blockName.textContent = block.blockName;
+
+		const badge = document.createElement('span');
+		badge.className = block.badge.cssClass;
+		badge.textContent = block.badge.label;
+
+		blockItem.appendChild(blockName);
+		blockItem.appendChild(badge);
+		blocksList.appendChild(blockItem);
+	  });
+	}
+
+	// Toggle blocks section
+	document.getElementById('blocks-header').addEventListener('click', () => {
+	  const blocksList = document.getElementById('blocks-list');
+	  const toggleIcon = document.getElementById('blocks-toggle-icon');
+
+	  blocksList.classList.toggle('collapsed');
+	  toggleIcon.classList.toggle('collapsed');
+	});
+
+	// Validation warnings functionality
+	function displayValidationWarnings(warnings) {
+	  const warningsContainer = document.getElementById('validation-warnings');
+	  const warningsList = document.getElementById('validation-warnings-list');
+
+	  if (!warnings || warnings.length === 0) {
+		warningsContainer.classList.remove('visible');
+		warningsList.innerHTML = '';
+		return;
+	  }
+
+	  warningsContainer.classList.add('visible');
+	  warningsList.innerHTML = '';
+
+	  warnings.forEach(warning => {
+		const li = document.createElement('li');
+		li.textContent = warning;
+		warningsList.appendChild(li);
 	  });
 	}
 

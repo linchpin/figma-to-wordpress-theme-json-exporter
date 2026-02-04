@@ -45,6 +45,15 @@ export async function getAllColorPresets(selectedCollectionIds?: string[]): Prom
 	const collections = await figma.variables.getLocalVariableCollectionsAsync();
 	const colorPresets: ColorPresetData[] = [];
 
+	// Get paint styles and create a map for quick lookup
+	const paintStyles = await figma.getLocalPaintStylesAsync();
+	const paintStyleMap = new Map<string, any>();
+	for (const style of paintStyles) {
+		if (style.paints && style.paints.length > 0) {
+			paintStyleMap.set(style.id, style);
+		}
+	}
+
 	// Filter collections based on selectedCollectionIds if provided
 	const filteredCollections = selectedCollectionIds && selectedCollectionIds.length > 0
 		? collections.filter(collection => selectedCollectionIds.includes(collection.id))
@@ -223,10 +232,10 @@ export async function getColorPresets(selectedColorIds?: string[]): Promise<Colo
 				// This ensures we reference the semantic color name, not the primitive it might resolve to
 				const nameParts = name.split("/").map(part => sanitizeCollectionName(part));
 				const colorValue = buildCssVarReference(['color', ...nameParts]);
-				
-				// Create a preset for this color - use variable name for slug, paint style name for display
+
+				// Create a preset for this color - use variable name for slug and display
 				const preset: ColorPreset = {
-					name: displayName,
+					name: nameToLabel(name),
 					slug: nameToSlug(name), // Use variable name for slug
 					color: colorValue
 				};

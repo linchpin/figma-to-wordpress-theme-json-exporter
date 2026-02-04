@@ -4,6 +4,8 @@ import { ExportOptions } from './types';
 import { exportToJSON } from './export/index';
 import { getAllColorPresets } from './color/index';
 import { applyCssVarSyntaxToVariables } from './utils/figma-variables';
+import { getDetectedBlocks } from './collections/processors/wp-blocks';
+import { isWordPressBlocksCollection, extractWordPressBlockName, isCoreBlock } from './utils/index';
 
 figma.ui.onmessage = async (e) => {
 	console.log("code received message", e);
@@ -71,6 +73,30 @@ figma.ui.onmessage = async (e) => {
 				Math.max(300, Math.round(e.width)),
 				Math.max(300, Math.round(e.height))
 			);
+		}
+	} else if (e.type === "GET_BLOCKS") {
+		// Get all detected block collections for the UI
+		try {
+			const collections = await figma.variables.getLocalVariableCollectionsAsync();
+			const collectionData = collections.map(collection => ({
+				id: collection.id,
+				name: collection.name,
+				modeCount: collection.modes.length,
+				variableCount: collection.variableIds.length
+			}));
+
+			// Use the utility function to get detected blocks with badge info
+			const blocks = getDetectedBlocks(collectionData);
+
+			figma.ui.postMessage({
+				type: "BLOCKS_RESULT",
+				blocks
+			});
+		} catch (error) {
+			figma.ui.postMessage({
+				type: "BLOCKS_RESULT",
+				error: error instanceof Error ? error.message : "Failed to get block collections"
+			});
 		}
 	}
 };
