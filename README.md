@@ -340,6 +340,7 @@ For comprehensive information on specific features, see these detailed guides:
 - **[COLOR-PRESETS-GUIDE.md](COLOR-PRESETS-GUIDE.md)** - Color presets and customization modal
 - **[SPACING-GUIDE.md](SPACING-GUIDE.md)** - Spacing presets and variable detection
 - **[FLUID-VARIABLES-GUIDE.md](FLUID-VARIABLES-GUIDE.md)** - Responsive/fluid variables setup
+- **[DEVELOPER.md](DEVELOPER.md)** - Architecture, code structure, and contribution guide for developers
 
 ## Development
 
