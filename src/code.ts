@@ -6,6 +6,7 @@ import { getAllColorPresets } from './color/index';
 import { applyCssVarSyntaxToVariables } from './utils/figma-variables';
 import { getDetectedBlocks } from './collections/processors/wp-blocks';
 import { isWordPressBlocksCollection, extractWordPressBlockName, isCoreBlock } from './utils/index';
+import { importFromThemeJSON, validateThemeJSON, previewImport, checkExistingCollections, ImportOptions } from './import/index';
 
 figma.ui.onmessage = async (e) => {
 	console.log("code received message", e);
@@ -99,12 +100,89 @@ figma.ui.onmessage = async (e) => {
 			});
 		}
 	}
+	// ==========================================================================
+	// Import Message Handlers
+	// ==========================================================================
+	else if (e.type === "VALIDATE_THEME_JSON") {
+		// Validate a theme.json file without importing
+		try {
+			const { themeJson } = e;
+			const validation = await validateThemeJSON(themeJson);
+			figma.ui.postMessage({
+				type: "VALIDATE_THEME_JSON_RESULT",
+				validation
+			});
+		} catch (error) {
+			figma.ui.postMessage({
+				type: "VALIDATE_THEME_JSON_RESULT",
+				error: error instanceof Error ? error.message : "Validation failed"
+			});
+		}
+	} else if (e.type === "PREVIEW_IMPORT") {
+		// Preview what will be created without actually creating
+		try {
+			const { themeJson, options } = e;
+			const preview = await previewImport(themeJson, options);
+			figma.ui.postMessage({
+				type: "PREVIEW_IMPORT_RESULT",
+				preview
+			});
+		} catch (error) {
+			figma.ui.postMessage({
+				type: "PREVIEW_IMPORT_RESULT",
+				error: error instanceof Error ? error.message : "Preview failed"
+			});
+		}
+	} else if (e.type === "IMPORT") {
+		// Perform the actual import
+		try {
+			const themeJson = e.themeJson ?? e.options?.themeJson;
+			if (!themeJson) {
+				throw new Error("Missing theme.json input");
+			}
+			const options: ImportOptions = {
+				...(e.options || {}),
+				themeJson
+			};
+			const result = await importFromThemeJSON(options);
+			figma.ui.postMessage({
+				type: "IMPORT_RESULT",
+				result
+			});
+		} catch (error) {
+			figma.ui.postMessage({
+				type: "IMPORT_RESULT",
+				error: error instanceof Error ? error.message : "Import failed"
+			});
+		}
+	} else if (e.type === "CHECK_EXISTING_COLLECTIONS") {
+		// Check for collection name conflicts
+		try {
+			const { collectionNames } = e;
+			const existing = await checkExistingCollections(collectionNames || []);
+			figma.ui.postMessage({
+				type: "CHECK_EXISTING_COLLECTIONS_RESULT",
+				existing
+			});
+		} catch (error) {
+			figma.ui.postMessage({
+				type: "CHECK_EXISTING_COLLECTIONS_RESULT",
+				error: error instanceof Error ? error.message : "Check failed"
+			});
+		}
+	}
 };
 
 if (figma.command === "export") {
 	figma.showUI(__uiFiles__["export"], {
 		width: 600,
 		height: 600,
+		themeColors: true,
+	});
+} else if (figma.command === "import") {
+	figma.showUI(__uiFiles__["import"], {
+		width: 600,
+		height: 650,
 		themeColors: true,
 	});
 } else if (figma.command === "css-vars") {

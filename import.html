@@ -1,0 +1,1103 @@
+<style>
+	:root {
+	  --spacing: 0.8rem;
+	}
+
+	* {
+	  box-sizing: border-box;
+	  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+		Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+		sans-serif;
+	}
+
+	body {
+	  background-color: var(--figma-color-bg);
+	  color: var(--figma-color-text);
+	  margin: 0;
+	  padding: var(--spacing);
+	  min-height: 400px;
+	  min-width: 400px;
+	  position: relative;
+	  overflow: hidden;
+	}
+
+	html,
+	body {
+	  height: 100%;
+	}
+
+	main {
+	  display: flex;
+	  flex-direction: column;
+	  gap: var(--spacing);
+	  height: 100%;
+	  overflow: hidden;
+	}
+
+	button {
+	  appearance: none;
+	  border-radius: 4px;
+	  padding: var(--spacing);
+	  cursor: pointer;
+	}
+
+	textarea {
+	  background-color: var(--figma-color-bg-secondary);
+	  border: 2px solid var(--figma-color-border);
+	  color: var(--figma-color-text);
+	  min-height: 150px;
+	  max-height: 300px;
+	  font-family: Andale Mono, monospace;
+	  font-size: 0.85rem;
+	  overflow: auto;
+	  padding: var(--spacing);
+	  white-space: pre;
+	  resize: vertical;
+	  flex: 1;
+	  width: 100%;
+	}
+
+	textarea:focus {
+	  border-color: var(--figma-color-border-selected);
+	  outline: none;
+	}
+
+	button {
+	  background-color: var(--figma-color-bg-brand);
+	  border: none;
+	  color: var(--figma-color-text-onbrand);
+	  font-weight: bold;
+	}
+
+	.info-text {
+	  font-size: 0.9rem;
+	  margin-bottom: var(--spacing);
+	  color: var(--figma-color-text-secondary);
+	  flex-shrink: 0;
+	}
+
+	/* Step navigation styles */
+	.step-navigation {
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 2);
+	  margin-bottom: var(--spacing);
+	  padding: calc(var(--spacing) / 2);
+	  background-color: var(--figma-color-bg-secondary);
+	  border-radius: 4px;
+	  flex-shrink: 0;
+	}
+
+	.step-indicator {
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 4);
+	  padding: calc(var(--spacing) / 4) calc(var(--spacing) / 2);
+	  border-radius: 4px;
+	  font-size: 0.8rem;
+	  font-weight: 500;
+	  cursor: pointer;
+	  transition: all 0.2s;
+	}
+
+	.step-indicator span:first-child {
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  width: 20px;
+	  height: 20px;
+	  border-radius: 50%;
+	  font-size: 0.7rem;
+	  font-weight: bold;
+	}
+
+	.step-indicator.active {
+	  background-color: var(--figma-color-bg-brand);
+	  color: var(--figma-color-text-onbrand);
+	}
+
+	.step-indicator.active span:first-child {
+	  background-color: var(--figma-color-text-onbrand);
+	  color: var(--figma-color-bg-brand);
+	}
+
+	.step-indicator.completed {
+	  background-color: var(--figma-color-bg-success);
+	  color: var(--figma-color-text-onbrand);
+	}
+
+	.step-indicator:not(.active):not(.completed) {
+	  background-color: var(--figma-color-bg);
+	  color: var(--figma-color-text-secondary);
+	}
+
+	.step-indicator:not(.active):not(.completed) span:first-child {
+	  background-color: var(--figma-color-bg-secondary);
+	}
+
+	.step-content {
+	  display: none;
+	  flex: 1;
+	  overflow: hidden;
+	  flex-direction: column;
+	}
+
+	.step-content.active {
+	  display: flex;
+	}
+
+	.step-actions {
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	  margin-top: var(--spacing);
+	  padding-top: var(--spacing);
+	  border-top: 1px solid var(--figma-color-border);
+	  flex-shrink: 0;
+	}
+
+	.step-button {
+	  padding: calc(var(--spacing) / 2) var(--spacing);
+	  border-radius: 4px;
+	  font-weight: 500;
+	  cursor: pointer;
+	  border: none;
+	}
+
+	.step-button.primary {
+	  background-color: var(--figma-color-bg-brand);
+	  color: var(--figma-color-text-onbrand);
+	}
+
+	.step-button.secondary {
+	  background-color: var(--figma-color-bg-secondary);
+	  color: var(--figma-color-text);
+	}
+
+	.step-button:disabled {
+	  background-color: var(--figma-color-bg-disabled);
+	  color: var(--figma-color-text-disabled);
+	  cursor: not-allowed;
+	}
+
+	/* Input section */
+	.input-section {
+	  display: flex;
+	  flex-direction: column;
+	  gap: var(--spacing);
+	  flex: 1;
+	  min-height: 0;
+	}
+
+	.input-tabs {
+	  display: flex;
+	  gap: calc(var(--spacing) / 2);
+	  flex-shrink: 0;
+	}
+
+	.input-tab {
+	  padding: calc(var(--spacing) / 2) var(--spacing);
+	  background-color: var(--figma-color-bg-secondary);
+	  border: 1px solid var(--figma-color-border);
+	  border-radius: 4px 4px 0 0;
+	  font-size: 0.9rem;
+	  cursor: pointer;
+	}
+
+	.input-tab.active {
+	  background-color: var(--figma-color-bg);
+	  border-bottom-color: var(--figma-color-bg);
+	}
+
+	.input-content {
+	  flex: 1;
+	  display: none;
+	  flex-direction: column;
+	  min-height: 0;
+	}
+
+	.input-content.active {
+	  display: flex;
+	}
+
+	.file-drop-zone {
+	  border: 2px dashed var(--figma-color-border);
+	  border-radius: 4px;
+	  padding: var(--spacing);
+	  text-align: center;
+	  flex: 1;
+	  display: flex;
+	  flex-direction: column;
+	  justify-content: center;
+	  align-items: center;
+	  gap: var(--spacing);
+	  transition: all 0.2s;
+	}
+
+	.file-drop-zone.dragover {
+	  border-color: var(--figma-color-bg-brand);
+	  background-color: var(--figma-color-bg-selected);
+	}
+
+	.file-drop-zone.has-file {
+	  border-style: solid;
+	  border-color: var(--figma-color-bg-success);
+	}
+
+	.file-upload-button {
+	  background-color: var(--figma-color-bg-secondary);
+	  color: var(--figma-color-text);
+	  padding: calc(var(--spacing) / 2) var(--spacing);
+	  border: 1px solid var(--figma-color-border);
+	  border-radius: 4px;
+	}
+
+	.file-name-display {
+	  font-size: 0.9rem;
+	  color: var(--figma-color-text-secondary);
+	}
+
+	.file-clear-button {
+	  background: none;
+	  border: none;
+	  color: var(--figma-color-text-secondary);
+	  font-size: 0.8rem;
+	  cursor: pointer;
+	  text-decoration: underline;
+	}
+
+	/* Validation status */
+	.validation-status {
+	  padding: calc(var(--spacing) / 2);
+	  border-radius: 4px;
+	  font-size: 0.9rem;
+	  flex-shrink: 0;
+	}
+
+	.validation-status.valid {
+	  background-color: rgba(0, 180, 0, 0.1);
+	  border: 1px solid rgba(0, 180, 0, 0.3);
+	  color: #006600;
+	}
+
+	.validation-status.invalid {
+	  background-color: rgba(255, 0, 0, 0.1);
+	  border: 1px solid rgba(255, 0, 0, 0.3);
+	  color: #990000;
+	}
+
+	.validation-status.pending {
+	  background-color: var(--figma-color-bg-secondary);
+	  border: 1px solid var(--figma-color-border);
+	  color: var(--figma-color-text-secondary);
+	}
+
+	/* Preview section */
+	.preview-section {
+	  flex: 1;
+	  overflow-y: auto;
+	  min-height: 0;
+	}
+
+	.collection-preview {
+	  border: 1px solid var(--figma-color-border);
+	  border-radius: 4px;
+	  margin-bottom: var(--spacing);
+	  overflow: hidden;
+	}
+
+	.collection-preview-header {
+	  background-color: var(--figma-color-bg-secondary);
+	  padding: calc(var(--spacing) / 2) var(--spacing);
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	}
+
+	.collection-preview-name {
+	  font-weight: 600;
+	  font-size: 0.95rem;
+	}
+
+	.collection-preview-badge {
+	  background-color: var(--figma-color-bg-brand);
+	  color: var(--figma-color-text-onbrand);
+	  padding: 2px 8px;
+	  border-radius: 10px;
+	  font-size: 0.7rem;
+	  font-weight: bold;
+	}
+
+	.collection-preview-badge.warning {
+	  background-color: #f0ad4e;
+	}
+
+	.collection-preview-body {
+	  padding: calc(var(--spacing) / 2) var(--spacing);
+	  font-size: 0.85rem;
+	}
+
+	.variable-list {
+	  display: flex;
+	  flex-wrap: wrap;
+	  gap: calc(var(--spacing) / 4);
+	  margin-top: calc(var(--spacing) / 2);
+	}
+
+	.variable-tag {
+	  background-color: var(--figma-color-bg-secondary);
+	  padding: 2px 8px;
+	  border-radius: 4px;
+	  font-size: 0.8rem;
+	  font-family: monospace;
+	}
+
+	.variable-tag.color {
+	  display: flex;
+	  align-items: center;
+	  gap: 4px;
+	}
+
+	.color-swatch {
+	  width: 12px;
+	  height: 12px;
+	  border-radius: 2px;
+	  border: 1px solid var(--figma-color-border);
+	}
+
+	/* Options section */
+	.options-section {
+	  background-color: var(--figma-color-bg-secondary);
+	  padding: var(--spacing);
+	  border-radius: 4px;
+	  flex-shrink: 0;
+	}
+
+	.option-row {
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 2);
+	  margin-bottom: calc(var(--spacing) / 2);
+	}
+
+	.option-row:last-child {
+	  margin-bottom: 0;
+	}
+
+	.option-row label {
+	  font-size: 0.9rem;
+	  cursor: pointer;
+	}
+
+	.option-row select {
+	  padding: calc(var(--spacing) / 4) calc(var(--spacing) / 2);
+	  border-radius: 4px;
+	  border: 1px solid var(--figma-color-border);
+	  background-color: var(--figma-color-bg);
+	  color: var(--figma-color-text);
+	}
+
+	/* Warnings list */
+	.warnings-section {
+	  background-color: #fff3cd;
+	  border: 1px solid #ffc107;
+	  border-radius: 4px;
+	  padding: calc(var(--spacing) / 2);
+	  margin-bottom: var(--spacing);
+	  flex-shrink: 0;
+	}
+
+	.warnings-title {
+	  font-weight: 600;
+	  color: #856404;
+	  font-size: 0.85rem;
+	  margin-bottom: calc(var(--spacing) / 4);
+	}
+
+	.warnings-list {
+	  list-style: none;
+	  padding: 0;
+	  margin: 0;
+	  max-height: 100px;
+	  overflow-y: auto;
+	}
+
+	.warnings-list li {
+	  font-size: 0.8rem;
+	  color: #856404;
+	  padding: 2px 0;
+	}
+
+	/* Results section */
+	.results-section {
+	  flex: 1;
+	  overflow-y: auto;
+	  min-height: 0;
+	}
+
+	.result-summary {
+	  background-color: var(--figma-color-bg-secondary);
+	  padding: var(--spacing);
+	  border-radius: 4px;
+	  margin-bottom: var(--spacing);
+	}
+
+	.result-summary.success {
+	  background-color: rgba(0, 180, 0, 0.1);
+	  border: 1px solid rgba(0, 180, 0, 0.3);
+	}
+
+	.result-summary.error {
+	  background-color: rgba(255, 0, 0, 0.1);
+	  border: 1px solid rgba(255, 0, 0, 0.3);
+	}
+
+	.result-stat {
+	  display: flex;
+	  justify-content: space-between;
+	  font-size: 0.9rem;
+	  padding: calc(var(--spacing) / 4) 0;
+	}
+
+	.result-stat-value {
+	  font-weight: 600;
+	}
+
+	.result-collections {
+	  margin-top: var(--spacing);
+	}
+
+	.result-collection {
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	  padding: calc(var(--spacing) / 2);
+	  background-color: var(--figma-color-bg);
+	  border: 1px solid var(--figma-color-border);
+	  border-radius: 4px;
+	  margin-bottom: calc(var(--spacing) / 2);
+	  font-size: 0.9rem;
+	}
+
+	/* Resize handle */
+	.resize-handle {
+	  position: absolute;
+	  bottom: 0;
+	  right: 0;
+	  width: 20px;
+	  height: 20px;
+	  cursor: nwse-resize;
+	  z-index: 100;
+	  opacity: 0.7;
+	}
+
+	.resize-handle:before,
+	.resize-handle:after {
+	  content: "";
+	  position: absolute;
+	  background-color: var(--figma-color-border);
+	}
+
+	.resize-handle:before {
+	  width: 2px;
+	  height: 12px;
+	  bottom: 3px;
+	  right: 8px;
+	  transform: rotate(45deg);
+	}
+
+	.resize-handle:after {
+	  width: 12px;
+	  height: 2px;
+	  bottom: 8px;
+	  right: 3px;
+	  transform: rotate(45deg);
+	}
+
+	.resize-overlay {
+	  position: fixed;
+	  top: 0;
+	  left: 0;
+	  width: 100%;
+	  height: 100%;
+	  z-index: 99;
+	  display: none;
+	  cursor: nwse-resize;
+	}
+
+	/* Loading state */
+	.loading {
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  gap: var(--spacing);
+	  padding: var(--spacing);
+	  color: var(--figma-color-text-secondary);
+	  font-style: italic;
+	}
+
+	@keyframes spin {
+	  to { transform: rotate(360deg); }
+	}
+
+	.spinner {
+	  width: 16px;
+	  height: 16px;
+	  border: 2px solid var(--figma-color-border);
+	  border-top-color: var(--figma-color-bg-brand);
+	  border-radius: 50%;
+	  animation: spin 1s linear infinite;
+	}
+</style>
+
+<main>
+	<!-- Step Navigation -->
+	<div class="step-navigation">
+		<div class="step-indicator active" data-step="1">
+			<span>1</span>
+			<span>Input</span>
+		</div>
+		<div class="step-indicator" data-step="2">
+			<span>2</span>
+			<span>Preview</span>
+		</div>
+		<div class="step-indicator" data-step="3">
+			<span>3</span>
+			<span>Import</span>
+		</div>
+	</div>
+
+	<!-- Step 1: Input -->
+	<div class="step-content active" id="step-1">
+		<div class="info-text">
+			Provide a WordPress theme.json file to import. You can upload a file or paste the JSON content directly.
+		</div>
+
+		<div class="input-section">
+			<div class="input-tabs">
+				<button type="button" class="input-tab active" data-tab="file">Upload File</button>
+				<button type="button" class="input-tab" data-tab="paste">Paste JSON</button>
+			</div>
+
+			<div class="input-content active" id="input-file">
+				<div class="file-drop-zone" id="file-drop-zone">
+					<div class="drop-text">Drag & drop a theme.json file here</div>
+					<div>or</div>
+					<input type="file" id="file-input" accept=".json" style="display: none;" />
+					<button type="button" class="file-upload-button" id="file-upload-button">Choose File</button>
+					<div class="file-name-display" id="file-name-display"></div>
+					<button type="button" class="file-clear-button" id="file-clear-button" style="display: none;">Clear</button>
+				</div>
+			</div>
+
+			<div class="input-content" id="input-paste">
+				<textarea id="json-input" placeholder='{"version": 3, "settings": {...}}'></textarea>
+			</div>
+		</div>
+
+		<div class="validation-status pending" id="validation-status">
+			Waiting for input...
+		</div>
+
+		<div class="step-actions">
+			<div></div>
+			<button type="button" class="step-button primary" id="next-to-step-2" disabled>Next: Preview</button>
+		</div>
+	</div>
+
+	<!-- Step 2: Preview -->
+	<div class="step-content" id="step-2">
+		<div class="info-text">
+			Review what will be imported. Adjust options if needed.
+		</div>
+
+		<div class="options-section">
+			<div class="option-row">
+				<label for="conflict-strategy">When collection exists:</label>
+				<select id="conflict-strategy">
+					<option value="skip">Skip (don't create)</option>
+					<option value="overwrite" selected>Overwrite (add to existing)</option>
+					<option value="rename">Rename (create new with suffix)</option>
+				</select>
+			</div>
+			<div class="option-row">
+				<input type="checkbox" id="create-fluid-modes" checked />
+				<label for="create-fluid-modes">Create Desktop/Mobile modes for fluid values</label>
+			</div>
+		</div>
+
+		<div class="warnings-section" id="warnings-section" style="display: none;">
+			<div class="warnings-title">Warnings</div>
+			<ul class="warnings-list" id="warnings-list"></ul>
+		</div>
+
+		<div class="preview-section" id="preview-section">
+			<div class="loading" id="preview-loading">
+				<div class="spinner"></div>
+				<span>Analyzing theme.json...</span>
+			</div>
+		</div>
+
+		<div class="step-actions">
+			<button type="button" class="step-button secondary" id="back-to-step-1">Back</button>
+			<button type="button" class="step-button primary" id="next-to-step-3" disabled>Import</button>
+		</div>
+	</div>
+
+	<!-- Step 3: Import -->
+	<div class="step-content" id="step-3">
+		<div class="info-text">
+			Import is in progress...
+		</div>
+
+		<div class="results-section" id="results-section">
+			<div class="loading" id="import-loading">
+				<div class="spinner"></div>
+				<span>Creating collections and variables...</span>
+			</div>
+
+			<div class="result-summary" id="result-summary" style="display: none;">
+				<div class="result-stat">
+					<span>Collections created:</span>
+					<span class="result-stat-value" id="collections-created">0</span>
+				</div>
+				<div class="result-stat">
+					<span>Variables created:</span>
+					<span class="result-stat-value" id="variables-created">0</span>
+				</div>
+
+				<div class="result-collections" id="result-collections"></div>
+			</div>
+
+			<div class="warnings-section" id="result-warnings-section" style="display: none;">
+				<div class="warnings-title">Warnings</div>
+				<ul class="warnings-list" id="result-warnings-list"></ul>
+			</div>
+		</div>
+
+		<div class="step-actions">
+			<button type="button" class="step-button secondary" id="back-to-step-2" style="display: none;">Back</button>
+			<button type="button" class="step-button primary" id="import-another" style="display: none;">Import Another</button>
+		</div>
+	</div>
+</main>
+
+<div class="resize-handle" id="resize-handle"></div>
+<div class="resize-overlay" id="resize-overlay"></div>
+
+<script>
+	let currentStep = 1;
+	let themeJson = null;
+	let previewData = null;
+
+	// Resize functionality
+	const resizeHandle = document.getElementById('resize-handle');
+	const resizeOverlay = document.getElementById('resize-overlay');
+	let isResizing = false;
+	let initialWidth, initialHeight, initialX, initialY;
+
+	resizeHandle.addEventListener('mousedown', initResize);
+
+	function initResize(e) {
+		e.preventDefault();
+		initialWidth = window.innerWidth;
+		initialHeight = window.innerHeight;
+		initialX = e.clientX;
+		initialY = e.clientY;
+		resizeOverlay.style.display = 'block';
+		isResizing = true;
+		window.addEventListener('mousemove', resizeWindow);
+		window.addEventListener('mouseup', stopResize);
+	}
+
+	function resizeWindow(e) {
+		if (!isResizing) return;
+		const newWidth = initialWidth + (e.clientX - initialX);
+		const newHeight = initialHeight + (e.clientY - initialY);
+		const width = Math.max(300, newWidth);
+		const height = Math.max(300, newHeight);
+		parent.postMessage({
+			pluginMessage: { type: "RESIZE", width, height }
+		}, "*");
+	}
+
+	function stopResize() {
+		isResizing = false;
+		resizeOverlay.style.display = 'none';
+		window.removeEventListener('mousemove', resizeWindow);
+		window.removeEventListener('mouseup', stopResize);
+	}
+
+	// Tab switching
+	document.querySelectorAll('.input-tab').forEach(tab => {
+		tab.addEventListener('click', () => {
+			document.querySelectorAll('.input-tab').forEach(t => t.classList.remove('active'));
+			document.querySelectorAll('.input-content').forEach(c => c.classList.remove('active'));
+			tab.classList.add('active');
+			document.getElementById(`input-${tab.dataset.tab}`).classList.add('active');
+		});
+	});
+
+	// File upload
+	const fileInput = document.getElementById('file-input');
+	const fileUploadButton = document.getElementById('file-upload-button');
+	const fileDropZone = document.getElementById('file-drop-zone');
+	const fileNameDisplay = document.getElementById('file-name-display');
+	const fileClearButton = document.getElementById('file-clear-button');
+
+	fileUploadButton.addEventListener('click', () => fileInput.click());
+
+	fileInput.addEventListener('change', (e) => {
+		if (e.target.files[0]) {
+			handleFile(e.target.files[0]);
+		}
+	});
+
+	// Drag and drop
+	fileDropZone.addEventListener('dragover', (e) => {
+		e.preventDefault();
+		fileDropZone.classList.add('dragover');
+	});
+
+	fileDropZone.addEventListener('dragleave', () => {
+		fileDropZone.classList.remove('dragover');
+	});
+
+	fileDropZone.addEventListener('drop', (e) => {
+		e.preventDefault();
+		fileDropZone.classList.remove('dragover');
+		if (e.dataTransfer.files[0]) {
+			handleFile(e.dataTransfer.files[0]);
+		}
+	});
+
+	fileClearButton.addEventListener('click', () => {
+		fileInput.value = '';
+		fileNameDisplay.textContent = '';
+		fileClearButton.style.display = 'none';
+		fileDropZone.classList.remove('has-file');
+		themeJson = null;
+		updateValidationStatus('pending', 'Waiting for input...');
+		document.getElementById('next-to-step-2').disabled = true;
+	});
+
+	async function handleFile(file) {
+		try {
+			const content = await file.text();
+			themeJson = JSON.parse(content);
+			fileNameDisplay.textContent = file.name;
+			fileClearButton.style.display = 'inline';
+			fileDropZone.classList.add('has-file');
+			validateInput();
+		} catch (error) {
+			updateValidationStatus('invalid', `Error reading file: ${error.message}`);
+			themeJson = null;
+		}
+	}
+
+	// JSON paste input
+	const jsonInput = document.getElementById('json-input');
+	let debounceTimer;
+
+	jsonInput.addEventListener('input', () => {
+		clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => {
+			const value = jsonInput.value.trim();
+			if (!value) {
+				themeJson = null;
+				updateValidationStatus('pending', 'Waiting for input...');
+				document.getElementById('next-to-step-2').disabled = true;
+				return;
+			}
+			try {
+				themeJson = JSON.parse(value);
+				validateInput();
+			} catch (error) {
+				themeJson = null;
+				updateValidationStatus('invalid', `Invalid JSON: ${error.message}`);
+				document.getElementById('next-to-step-2').disabled = true;
+			}
+		}, 300);
+	});
+
+	function validateInput() {
+		if (!themeJson) return;
+
+		parent.postMessage({
+			pluginMessage: { type: "VALIDATE_THEME_JSON", themeJson }
+		}, "*");
+	}
+
+	function updateValidationStatus(status, message) {
+		const el = document.getElementById('validation-status');
+		el.className = `validation-status ${status}`;
+		el.textContent = message;
+	}
+
+	// Step navigation
+	function showStep(step) {
+		document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+		document.querySelectorAll('.step-indicator').forEach(i => {
+			i.classList.remove('active', 'completed');
+			const indicatorStep = parseInt(i.dataset.step);
+			if (indicatorStep === step) {
+				i.classList.add('active');
+			} else if (indicatorStep < step) {
+				i.classList.add('completed');
+			}
+		});
+		document.getElementById(`step-${step}`).classList.add('active');
+		currentStep = step;
+
+		if (step === 2) {
+			loadPreview();
+		} else if (step === 3) {
+			runImport();
+		}
+	}
+
+	document.querySelectorAll('.step-indicator').forEach(indicator => {
+		indicator.addEventListener('click', () => {
+			const step = parseInt(indicator.dataset.step);
+			if (step <= currentStep + 1 && (step === 1 || themeJson)) {
+				showStep(step);
+			}
+		});
+	});
+
+	document.getElementById('next-to-step-2').addEventListener('click', () => showStep(2));
+	document.getElementById('back-to-step-1').addEventListener('click', () => showStep(1));
+	document.getElementById('next-to-step-3').addEventListener('click', () => showStep(3));
+	document.getElementById('back-to-step-2').addEventListener('click', () => showStep(2));
+	document.getElementById('import-another').addEventListener('click', () => {
+		themeJson = null;
+		previewData = null;
+		fileInput.value = '';
+		fileNameDisplay.textContent = '';
+		fileClearButton.style.display = 'none';
+		fileDropZone.classList.remove('has-file');
+		jsonInput.value = '';
+		updateValidationStatus('pending', 'Waiting for input...');
+		document.getElementById('next-to-step-2').disabled = true;
+		showStep(1);
+	});
+
+	function loadPreview() {
+		const previewSection = document.getElementById('preview-section');
+		const previewLoading = document.getElementById('preview-loading');
+		const warningsSection = document.getElementById('warnings-section');
+		const nextButton = document.getElementById('next-to-step-3');
+
+		previewSection.innerHTML = '';
+		previewSection.appendChild(previewLoading);
+		previewLoading.style.display = 'flex';
+		warningsSection.style.display = 'none';
+		nextButton.disabled = true;
+
+		const options = {
+			createFluidModes: document.getElementById('create-fluid-modes').checked,
+			conflictStrategy: document.getElementById('conflict-strategy').value
+		};
+
+		parent.postMessage({
+			pluginMessage: { type: "PREVIEW_IMPORT", themeJson, options }
+		}, "*");
+	}
+
+	function runImport() {
+		const importLoading = document.getElementById('import-loading');
+		const resultSummary = document.getElementById('result-summary');
+		const resultWarningsSection = document.getElementById('result-warnings-section');
+		const backButton = document.getElementById('back-to-step-2');
+		const importAnotherButton = document.getElementById('import-another');
+
+		importLoading.style.display = 'flex';
+		resultSummary.style.display = 'none';
+		resultWarningsSection.style.display = 'none';
+		backButton.style.display = 'none';
+		importAnotherButton.style.display = 'none';
+
+		const options = {
+			themeJson,
+			createFluidModes: document.getElementById('create-fluid-modes').checked,
+			conflictStrategy: document.getElementById('conflict-strategy').value,
+			overwriteExisting: document.getElementById('conflict-strategy').value === 'overwrite'
+		};
+
+		parent.postMessage({
+			pluginMessage: { type: "IMPORT", options }
+		}, "*");
+	}
+
+	// Message handling
+	window.onmessage = ({ data: { pluginMessage } }) => {
+		if (pluginMessage.type === "VALIDATE_THEME_JSON_RESULT") {
+			if (pluginMessage.error) {
+				updateValidationStatus('invalid', pluginMessage.error);
+				document.getElementById('next-to-step-2').disabled = true;
+			} else {
+				const validation = pluginMessage.validation;
+				if (validation.isValid) {
+					let message = `Valid theme.json (version ${validation.version})`;
+					if (validation.warnings.length > 0) {
+						message += ` - ${validation.warnings.length} warning(s)`;
+					}
+					updateValidationStatus('valid', message);
+					document.getElementById('next-to-step-2').disabled = false;
+				} else {
+					updateValidationStatus('invalid', validation.errors.join(', '));
+					document.getElementById('next-to-step-2').disabled = true;
+				}
+			}
+		} else if (pluginMessage.type === "PREVIEW_IMPORT_RESULT") {
+			const previewSection = document.getElementById('preview-section');
+			const previewLoading = document.getElementById('preview-loading');
+			const warningsSection = document.getElementById('warnings-section');
+			const warningsList = document.getElementById('warnings-list');
+			const nextButton = document.getElementById('next-to-step-3');
+
+			previewLoading.style.display = 'none';
+
+			if (pluginMessage.error) {
+				previewSection.innerHTML = `<div class="validation-status invalid">${pluginMessage.error}</div>`;
+				return;
+			}
+
+			previewData = pluginMessage.preview;
+
+			// Show warnings
+			if (previewData.warnings.length > 0) {
+				warningsSection.style.display = 'block';
+				warningsList.innerHTML = previewData.warnings.map(w => `<li>${w}</li>`).join('');
+			}
+
+			// Show collections preview
+			previewSection.innerHTML = '';
+			if (previewData.collections.length === 0) {
+				previewSection.innerHTML = '<div class="validation-status invalid">No importable data found in theme.json</div>';
+				return;
+			}
+
+			previewData.collections.forEach(collection => {
+				const div = document.createElement('div');
+				div.className = 'collection-preview';
+
+				const header = document.createElement('div');
+				header.className = 'collection-preview-header';
+
+				const name = document.createElement('div');
+				name.className = 'collection-preview-name';
+				name.textContent = collection.name;
+
+				header.appendChild(name);
+
+				if (collection.existsAlready) {
+					const badge = document.createElement('span');
+					badge.className = 'collection-preview-badge warning';
+					badge.textContent = 'Exists';
+					header.appendChild(badge);
+				}
+
+				const countBadge = document.createElement('span');
+				countBadge.className = 'collection-preview-badge';
+				countBadge.textContent = `${collection.variableCount} vars`;
+				header.appendChild(countBadge);
+
+				const body = document.createElement('div');
+				body.className = 'collection-preview-body';
+
+				const modesText = document.createElement('div');
+				modesText.textContent = `Modes: ${collection.modes.join(', ')}`;
+				body.appendChild(modesText);
+
+				if (collection.variables.length > 0) {
+					const varList = document.createElement('div');
+					varList.className = 'variable-list';
+
+					collection.variables.slice(0, 8).forEach(v => {
+						const tag = document.createElement('span');
+						tag.className = 'variable-tag';
+
+						if (v.type === 'COLOR' && v.value.startsWith('#')) {
+							tag.classList.add('color');
+							const swatch = document.createElement('span');
+							swatch.className = 'color-swatch';
+							swatch.style.backgroundColor = v.value;
+							tag.appendChild(swatch);
+							tag.appendChild(document.createTextNode(v.name));
+						} else {
+							tag.textContent = v.name;
+						}
+
+						varList.appendChild(tag);
+					});
+
+					if (collection.variables.length > 8) {
+						const more = document.createElement('span');
+						more.className = 'variable-tag';
+						more.textContent = `+${collection.variables.length - 8} more`;
+						varList.appendChild(more);
+					}
+
+					body.appendChild(varList);
+				}
+
+				div.appendChild(header);
+				div.appendChild(body);
+				previewSection.appendChild(div);
+			});
+
+			nextButton.disabled = false;
+		} else if (pluginMessage.type === "IMPORT_RESULT") {
+			const importLoading = document.getElementById('import-loading');
+			const resultSummary = document.getElementById('result-summary');
+			const resultWarningsSection = document.getElementById('result-warnings-section');
+			const resultWarningsList = document.getElementById('result-warnings-list');
+			const backButton = document.getElementById('back-to-step-2');
+			const importAnotherButton = document.getElementById('import-another');
+
+			importLoading.style.display = 'none';
+
+			if (pluginMessage.error) {
+				resultSummary.style.display = 'block';
+				resultSummary.className = 'result-summary error';
+				resultSummary.innerHTML = `<div style="color: #990000;"><strong>Import failed:</strong> ${pluginMessage.error}</div>`;
+				backButton.style.display = 'inline';
+				return;
+			}
+
+			const result = pluginMessage.result;
+
+			resultSummary.style.display = 'block';
+			resultSummary.className = `result-summary ${result.success ? 'success' : 'error'}`;
+
+			document.getElementById('collections-created').textContent = result.collectionsCreated;
+			document.getElementById('variables-created').textContent = result.variablesCreated;
+
+			// Show created collections
+			const collectionsDiv = document.getElementById('result-collections');
+			collectionsDiv.innerHTML = '';
+
+			if (result.collections.length > 0) {
+				result.collections.forEach(c => {
+					const item = document.createElement('div');
+					item.className = 'result-collection';
+					item.innerHTML = `<span>${c.name}</span><span>${c.variableCount} variables</span>`;
+					collectionsDiv.appendChild(item);
+				});
+			}
+
+			// Show warnings
+			if (result.warnings.length > 0) {
+				resultWarningsSection.style.display = 'block';
+				resultWarningsList.innerHTML = result.warnings.map(w => `<li>${w}</li>`).join('');
+			}
+
+			importAnotherButton.style.display = 'inline';
+
+			// Update info text
+			document.querySelector('#step-3 .info-text').textContent =
+				result.success ? 'Import completed successfully!' : 'Import completed with errors.';
+		}
+	};
+</script>
