@@ -131,9 +131,12 @@ The plugin employs a list of processors that are evaluated in sequence:
 1. **Primitives Processor** - Handles the "Primitives" collection as the base theme
 2. **WordPress Settings Colors Processor** - Processes color collections for palette generation
 3. **WordPress Settings Subset Processor** - Handles layout, spacing, typography, and shadow collections
-4. **WordPress Settings Processor** - Processes general WordPress settings collections
-5. **WordPress Elements Processor** - Handles element-specific "block" collections (buttons, headings, etc.)
-6. **Fallback Selected Processor** - Catches any remaining collections and adds them to custom settings
+4. **WordPress Settings Extended Processor** - Handles background, border, dimensions, and position collections (theme.json v3)
+5. **WordPress Settings Processor** - Processes general WordPress settings collections
+6. **WordPress Styles Global Processor** - Handles `wp.styles` collections for body-level styles
+7. **WordPress Elements Processor** - Handles element-specific collections (buttons, headings, links, etc.)
+8. **WordPress Blocks Processor** - Handles block-specific collections (`wp.blocks.{namespace/block}`)
+9. **Fallback Selected Processor** - Catches any remaining collections and adds them to custom settings
 
 ### Collection Types and Processing
 
@@ -336,6 +339,9 @@ All files are packed into a single zip download for easy use in WordPress themes
 For comprehensive information on specific features, see these detailed guides:
 
 - **[INSTALL.md](INSTALL.md)** - Complete installation and setup instructions
+- **[NAMING-CONVENTIONS.md](NAMING-CONVENTIONS.md)** - Complete naming conventions reference for collections and variables
+- **[BLOCKS-GUIDE.md](BLOCKS-GUIDE.md)** - Block-level styling with `wp.blocks.*` collections
+- **[ELEMENTS-GUIDE.md](ELEMENTS-GUIDE.md)** - Element-level styling with `wp.elements.*` collections
 - **[TYPOGRAPHY-GUIDE.md](TYPOGRAPHY-GUIDE.md)** - Typography presets and text style conversion
 - **[COLOR-PRESETS-GUIDE.md](COLOR-PRESETS-GUIDE.md)** - Color presets and customization modal
 - **[SPACING-GUIDE.md](SPACING-GUIDE.md)** - Spacing presets and variable detection

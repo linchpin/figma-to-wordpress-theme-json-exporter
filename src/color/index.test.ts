@@ -480,7 +480,7 @@ describe('getAllColorPresets', () => {
 	});
 
 	it('should get all color presets with resolved colors', async () => {
-        mockFigma.variables.getLocalVariableCollectionsAsync.mockResolvedValue([
+        const mockCollections = [
             {
                 name: 'wp.settings.colors',
 				modes: [{ modeId: 'mode1', name: 'Default' }],
@@ -592,17 +592,11 @@ describe('getAllColorPresets', () => {
 	});
 
 	it('should return color presets with collection info and resolved colors', async () => {
-        const mockColorCollection = {
-            name: 'wp.settings.color',
-			modes: [{ modeId: 'mode1', name: 'Default' }],
-			variableIds: ['var1', 'var2'],
-		};
-
-		const mockVariable1 = {
-			name: 'primary',
-			resolvedType: 'COLOR',
-			valuesByMode: {
-				mode1: { r: 1, g: 0, b: 0, a: 1 },
+        const mockCollections = [
+			{
+            	name: 'wp.settings.color',
+				modes: [{ modeId: 'mode1', name: 'Default' }],
+				variableIds: ['var1', 'var2'],
 			},
 		];
 
@@ -661,26 +655,20 @@ describe('getAllColorPresets', () => {
         expect(result[1]).toEqual({
 			id: 'var2',
 			name: 'Secondary Accent',
-			slug: 'secondary-accent'
+			slug: 'secondary-accent',
 			color: 'var(--wp--custom--color--secondary--accent)',
             collectionName: 'wp.settings.color',
-			resolvedColor: '#00ff00'
-        , isWordPressSettings: true
+			resolvedColor: '#00ff00',
+			isWordPressSettings: true
 		});
 	});
 
 	it('should handle variable aliases and resolve their colors', async () => {
-        const mockColorCollection = {
-            name: 'wp.settings.color',
-			modes: [{ modeId: 'mode1', name: 'Default' }],
-			variableIds: ['var1'],
-		};
-
-		const mockAliasVariable = {
-			name: 'alias-color',
-			resolvedType: 'COLOR',
-			valuesByMode: {
-				mode1: { type: 'VARIABLE_ALIAS', id: 'primitive-var' },
+        const mockCollections = [
+			{
+            	name: 'wp.settings.color',
+				modes: [{ modeId: 'mode1', name: 'Default' }],
+				variableIds: ['var1'],
 			},
 		];
 
@@ -741,14 +729,15 @@ describe('getAllColorPresets', () => {
   it('should sort by collection name then by color name', async () => {
     const mockCollections = [
 			{
-        name: 'wp.settings.brand',
+        		name: 'wp.settings.brand',
 				modes: [{ modeId: 'mode1', name: 'Default' }],
 				variableIds: ['var1'],
 			},
 			{
-        name: 'wp.settings.color',
+        		name: 'wp.settings.color',
 				modes: [{ modeId: 'mode2', name: 'Default' }],
 				variableIds: ['var2'],
+			},
 		];
 
 		const mockVariables = [

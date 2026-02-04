@@ -81,9 +81,15 @@ src/
 │       ├── primitives.ts        # Primitives collection processor
 │       ├── wp-settings.ts       # wp.settings.* processor
 │       ├── wp-settings-colors.ts# wp.settings.color processor
-│       ├── wp-settings-subset.ts# wp.settings.{layout,spacing,...}
+│       ├── wp-settings-subset.ts# wp.settings.{layout,spacing,typography,shadow}
+│       ├── wp-settings-extended.ts # wp.settings.{background,border,dimensions,position}
+│       ├── wp-styles-global.ts  # wp.styles processor for global styles
 │       ├── wp-elements.ts       # wp.elements.* processor
+│       ├── wp-blocks.ts         # wp.blocks.{namespace/block} processor
 │       └── fallback-selected.ts # Fallback for selected non-wp collections
+│
+├── types/
+│   └── theme-json.ts            # WordPress theme.json v3 type definitions
 │
 ├── color/
 │   └── index.ts                 # Color preset generation
@@ -266,9 +272,12 @@ Processors are evaluated in order. The first matching processor handles the coll
 | 1 | primitivesProcessor | `primitives` (case-insensitive) | settings.custom |
 | 2 | wpSettingsColorsProcessor | `wp.settings.color` or `wp.settings.colors` | Button styles only |
 | 3 | wpSettingsSubsetProcessor | `wp.settings.{layout\|spacing\|typography\|shadow}` | settings.{subset} |
-| 4 | wpSettingsProcessor | `wp.settings.*` | settings or settings.custom |
-| 5 | wpElementsProcessor | `wp.elements.*` | styles.elements |
-| 6 | fallbackSelectedProcessor | Everything else | settings.custom |
+| 4 | wpSettingsExtendedProcessor | `wp.settings.{background\|border\|dimensions\|position}` | settings.{subset} |
+| 5 | wpSettingsProcessor | `wp.settings.*` | settings or settings.custom |
+| 6 | wpStylesGlobalProcessor | `wp.styles` or `wp.styles.*` | styles (root) |
+| 7 | wpElementsProcessor | `wp.elements.*` | styles.elements |
+| 8 | wpBlocksProcessor | `wp.blocks.{namespace/block}` | styles.blocks |
+| 9 | fallbackSelectedProcessor | Everything else | settings.custom |
 
 ### Adding a New Processor
 
@@ -352,12 +361,29 @@ Generates separate theme.json style files for button variants (secondary, tertia
 | `isVariableAlias(value)` | Check if value is VARIABLE_ALIAS type |
 | `isWordPressSettingsCollection(name)` | Detect wp.settings.* collections |
 | `isWordPressElementsCollection(name)` | Detect wp.elements.* collections |
+| `isWordPressBlocksCollection(name)` | Detect wp.blocks.* collections |
+| `isWordPressStylesCollection(name)` | Detect wp.styles collections |
+| `extractWordPressBlockName(name)` | Extract block name from collection |
+| `isCoreBlock(blockName)` | Check if block is WordPress core |
+| `getBlockBadge(blockName)` | Get Core/Custom badge info for UI |
+| `isValidElement(elementName)` | Validate element against schema |
+| `isValidPseudoSelector(selector)` | Validate pseudo-selector |
 | `mergeCollectionData(target, path, data)` | Deep merge at path |
 | `deepMerge(target, source)` | Recursive object merge |
 | `shouldAddPxUnit(nameParts, value)` | Determine if px units needed |
 | `formatValueWithUnits(nameParts, value)` | Add appropriate units |
 | `toCamelCase(input)` | Convert to camelCase |
 | `convertPxToRem(pxValue)` | Convert pixels to rem |
+
+### Pseudo-Selector Utilities (`src/utils/pseudo-selectors.ts`)
+
+| Function | Purpose |
+|----------|---------|
+| `validatePseudoSelector(selector)` | Validate a pseudo-selector string |
+| `isPseudoSelectorKey(key)` | Check if key starts with ":" |
+| `extractPseudoSelectors(obj)` | Separate pseudo-selectors from other keys |
+| `validatePseudoSelectorsDeep(obj, path)` | Recursively validate all pseudo-selectors |
+| `getAllowedPseudoSelectorsForElement(element)` | Get allowed pseudo-selectors for element |
 
 ### CSS Utilities (`src/utils/css.ts`)
 

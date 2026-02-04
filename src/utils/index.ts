@@ -324,3 +324,117 @@ export async function resolveColorValueToHex(
 		return null;
 	}
 }
+
+// =============================================================================
+// WordPress Blocks Collection Utilities
+// =============================================================================
+
+/**
+ * Checks if a collection name matches the WordPress blocks pattern
+ * Matches: wp.blocks.core/button, wp.blocks.acf/hero, etc.
+ *
+ * @param collectionName The name of the collection
+ * @returns true if the collection should be treated as WordPress blocks styling
+ */
+export function isWordPressBlocksCollection(collectionName: string): boolean {
+	const pattern = /^wp\.blocks\.[a-z][a-z0-9-]*\/[a-z][a-z0-9-]*/i;
+	return pattern.test(collectionName);
+}
+
+/**
+ * Extracts the WordPress block name from a collection name
+ * @param collectionName The name of the collection (e.g., "wp.blocks.core/button")
+ * @returns The block name (e.g., "core/button") or null if not a blocks collection
+ */
+export function extractWordPressBlockName(collectionName: string): string | null {
+	const match = collectionName.match(/^wp\.blocks\.([a-z][a-z0-9-]*\/[a-z][a-z0-9-]*)/i);
+	return match ? match[1] : null;
+}
+
+/**
+ * Checks if a block name is a WordPress core block
+ * @param blockName The block name (e.g., "core/button")
+ * @returns true if it's a core block
+ */
+export function isCoreBlock(blockName: string): boolean {
+	return blockName.toLowerCase().startsWith('core/');
+}
+
+/**
+ * Gets the block badge type for UI display
+ * @param blockName The block name (e.g., "core/button" or "acf/hero")
+ * @returns Badge info with label and CSS class
+ */
+export function getBlockBadge(blockName: string): { label: string; cssClass: string } {
+	return isCoreBlock(blockName)
+		? { label: 'Core', cssClass: 'badge-core' }
+		: { label: 'Custom', cssClass: 'badge-custom' };
+}
+
+// =============================================================================
+// WordPress Styles Collection Utilities
+// =============================================================================
+
+/**
+ * Checks if a collection name matches the WordPress global styles pattern
+ * Matches: wp.styles, wp.styles.something
+ *
+ * @param collectionName The name of the collection
+ * @returns true if the collection should be treated as WordPress global styles
+ */
+export function isWordPressStylesCollection(collectionName: string): boolean {
+	const pattern = /^wp\.styles(?:\.|$)/i;
+	return pattern.test(collectionName);
+}
+
+/**
+ * Extracts the WordPress styles path from a collection name
+ * @param collectionName The name of the collection (e.g., "wp.styles.color")
+ * @returns The styles path (e.g., "color") or empty string if root
+ */
+export function extractWordPressStylesPath(collectionName: string): string {
+	if (!isWordPressStylesCollection(collectionName)) {
+		return "";
+	}
+	return collectionName.replace(/^wp\.styles\.?/i, "");
+}
+
+// =============================================================================
+// Element and Pseudo-Selector Validation
+// =============================================================================
+
+import { VALID_ELEMENTS, VALID_PSEUDO_SELECTORS } from "../types/theme-json";
+
+/**
+ * Validates if an element name is a valid WordPress element
+ * @param elementName The element name to validate
+ * @returns true if valid
+ */
+export function isValidElement(elementName: string): boolean {
+	return VALID_ELEMENTS.includes(elementName.toLowerCase() as any);
+}
+
+/**
+ * Validates if a pseudo-selector is valid for WordPress theme.json
+ * @param selector The pseudo-selector to validate (e.g., ":hover")
+ * @returns true if valid
+ */
+export function isValidPseudoSelector(selector: string): boolean {
+	return VALID_PSEUDO_SELECTORS.includes(selector.toLowerCase() as any);
+}
+
+/**
+ * Gets all valid WordPress element names
+ * @returns Array of valid element names
+ */
+export function getValidElements(): readonly string[] {
+	return VALID_ELEMENTS;
+}
+
+/**
+ * Gets all valid WordPress pseudo-selectors
+ * @returns Array of valid pseudo-selectors
+ */
+export function getValidPseudoSelectors(): readonly string[] {
+	return VALID_PSEUDO_SELECTORS;
+}

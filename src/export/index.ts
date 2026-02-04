@@ -16,7 +16,7 @@ import {
 	processButtonStyles,
 	clearProcessedButtonVariants,
 } from "../button/index";
-import { getTypographyPresets } from "../typography/index";
+import { getTypographyPresets, getWordPressTypographyPresets } from "../typography/index";
 import { getColorPresets, getColorPresetsWithValues } from "../color/index";
 import { getSpacingPresets } from "../spacing/index";
 import { sanitizeCollectionName } from "../utils/css";
@@ -216,24 +216,6 @@ export async function exportToJSON(options: ExportOptions = {}) {
 		if (spacingPresets.length > 0) {
 			theme.settings.spacing = theme.settings.spacing || {};
 			theme.settings.spacing.spacingSizes = spacingPresets;
-		}
-	}
-
-	// Validate the generated theme.json if validation is enabled
-	let validationResult = null;
-	if (options.validateThemeJson !== false) { // Default to true
-		try {
-			validationResult = await validateThemeJson(theme, {
-				strict: options.strictValidation || false,
-				allowCustomProperties: true // Allow custom properties since we generate them
-			});
-		} catch (error) {
-			console.warn('Theme.json validation failed:', error);
-			validationResult = {
-				isValid: false,
-				errors: [`Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`],
-				warnings: []
-			};
 		}
 	}
 
