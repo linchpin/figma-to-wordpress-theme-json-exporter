@@ -5,7 +5,7 @@ import { exportToJSON } from './export/index';
 import { getAllColorPresets } from './color/index';
 import { applyCssVarSyntaxToVariables } from './utils/figma-variables';
 import { getDetectedBlocks } from './collections/processors/wp-blocks';
-import { isWordPressBlocksCollection, extractWordPressBlockName, isCoreBlock } from './utils/index';
+import { isWordPressBlocksCollection, isGroupBasedBlocksCollection, extractWordPressBlockName, isCoreBlock } from './utils/index';
 import { importFromThemeJSON, validateThemeJSON, previewImport, checkExistingCollections, ImportOptions } from './import/index';
 import { createFromSchema, previewSchemaCreate, checkExistingSchemaCollections, SchemaCreateOptions } from './schema/index';
 
@@ -87,8 +87,21 @@ figma.ui.onmessage = async (e) => {
 				variableCount: collection.variableIds.length
 			}));
 
+			// For group-based wp.blocks collection, get variable names
+			let variableNames: string[] = [];
+			const wpBlocksCollection = collections.find(c => isGroupBasedBlocksCollection(c.name));
+			if (wpBlocksCollection) {
+				const variablePromises = wpBlocksCollection.variableIds.map(id =>
+					figma.variables.getVariableByIdAsync(id)
+				);
+				const variables = await Promise.all(variablePromises);
+				variableNames = variables
+					.filter((v): v is Variable => v !== null)
+					.map(v => v.name);
+			}
+
 			// Use the utility function to get detected blocks with badge info
-			const blocks = getDetectedBlocks(collectionData);
+			const blocks = getDetectedBlocks(collectionData, variableNames);
 
 			figma.ui.postMessage({
 				type: "BLOCKS_RESULT",

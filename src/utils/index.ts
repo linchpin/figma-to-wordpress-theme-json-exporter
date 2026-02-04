@@ -331,14 +331,25 @@ export async function resolveColorValueToHex(
 
 /**
  * Checks if a collection name matches the WordPress blocks pattern
- * Matches: wp.blocks.core/button, wp.blocks.acf/hero, etc.
+ * Matches: wp.blocks (group-based) or wp.blocks.core/button, wp.blocks.acf/hero, etc.
  *
  * @param collectionName The name of the collection
  * @returns true if the collection should be treated as WordPress blocks styling
  */
 export function isWordPressBlocksCollection(collectionName: string): boolean {
-	const pattern = /^wp\.blocks\.[a-z][a-z0-9-]*\/[a-z][a-z0-9-]*/i;
-	return pattern.test(collectionName);
+	// Match exact "wp.blocks" (group-based) or "wp.blocks.{namespace}/{block}" pattern
+	const exactMatch = /^wp\.blocks$/i.test(collectionName);
+	const namespacePattern = /^wp\.blocks\.[a-z][a-z0-9-]*\/[a-z][a-z0-9-]*/i;
+	return exactMatch || namespacePattern.test(collectionName);
+}
+
+/**
+ * Checks if a collection is the exact "wp.blocks" collection (group-based structure)
+ * @param collectionName The name of the collection
+ * @returns true if this is the group-based wp.blocks collection
+ */
+export function isGroupBasedBlocksCollection(collectionName: string): boolean {
+	return /^wp\.blocks$/i.test(collectionName);
 }
 
 /**

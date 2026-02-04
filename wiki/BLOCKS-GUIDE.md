@@ -6,15 +6,39 @@ This guide explains how to create Figma variable collections that generate WordP
 
 WordPress theme.json allows you to define styles for specific blocks. This plugin supports creating block collections in Figma that export to the `styles.blocks` section of theme.json.
 
-## Collection Naming Pattern
+## Collection Naming Patterns
 
-Block collections must follow this naming convention:
+The plugin supports two patterns for organizing block styles:
+
+### Pattern 1: Group-Based (Recommended)
+
+Create a single `wp.blocks` collection and organize variables using Figma's group hierarchy:
+
+```
+Collection: wp.blocks
+  └── Group: core
+        ├── cover
+        │     └── color/background
+        │     └── color/text
+        └── heading
+              └── color/text
+```
+
+Variable naming pattern: `{namespace}/{block-name}/{property-path}`
+
+| Variable Name | Block Target | Property |
+|--------------|--------------|----------|
+| `core/cover/color/background` | `core/cover` | `color.background` |
+| `core/heading/color/text` | `core/heading` | `color.text` |
+| `acf/hero/spacing/padding` | `acf/hero` | `spacing.padding` |
+
+### Pattern 2: Collection-Per-Block (Legacy)
+
+Create separate collections for each block. Note: Figma interprets `/` in collection names as folder separators, which may cause issues.
 
 ```
 wp.blocks.{namespace}/{block-name}
 ```
-
-### Examples
 
 | Collection Name | Block Target |
 |-----------------|--------------|
