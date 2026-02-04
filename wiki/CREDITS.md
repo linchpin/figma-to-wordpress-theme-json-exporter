@@ -6,13 +6,21 @@ The following acknowledges the Maintainers for this repository, those who have C
 
 The following individuals are responsible for curating the list of issues, responding to pull requests, and ensuring regular releases happen.
 
-[Fabian Kägy (@fabiankaegy)](https://github.com/fabiankaegy), [Jeffrey Paul (@jeffpaul)](https://github.com/jeffpaul).
+[Linchpin (@linchpin)](https://github.com/linchpin)
 
 ## Contributors
 
 Thank you to all the people who have already contributed to this repository via bug reports, code, design, ideas, project management, translation, testing, etc.
 
-[Fabian Kägy (@fabiankaegy)](https://github.com/fabiankaegy), [Jeffrey Paul (@jeffpaul)](https://github.com/jeffpaul).
+[Linchpin (@linchpin)](https://github.com/linchpin)
+
+## Original Project
+
+This project is a fork of the original [Figma to theme.json plugin](https://github.com/10up/figma-to-wordpress-theme-json-exporter) by [10up](https://10up.com/). We appreciate their foundational work which made this project possible.
+
+Original Contributors:
+- [Fabian Kägy (@fabiankaegy)](https://github.com/fabiankaegy)
+- [Jeffrey Paul (@jeffpaul)](https://github.com/jeffpaul)
 
 ## Libraries
 
