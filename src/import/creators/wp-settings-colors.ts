@@ -87,7 +87,7 @@ export async function createColorPaletteCollection(
 				// Create new variable
 				variable = figma.variables.createVariable(
 					variableName,
-					collection.id,
+					collection,
 					'COLOR'
 				);
 				result.variablesCreated++;

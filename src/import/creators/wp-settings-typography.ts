@@ -121,7 +121,7 @@ export async function createTypographyCollection(
 				} else {
 					variable = figma.variables.createVariable(
 						variableName,
-						collection.id,
+						collection,
 						'FLOAT'
 					);
 					result.variablesCreated++;
