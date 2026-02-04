@@ -1,34 +1,53 @@
-# Figma to WordPress theme.json Exporter
+<table width="100%">
+	<tr>
+		<td align="left" width="70%">
+			<strong>Figma to WordPress theme.json Exporter</strong><br />
+			A Figma plugin that converts design tokens and variables into WordPress theme.json format for seamless design-to-development workflows.
+		</td>
+		<td align="center" width="30%">
+			<a href="https://github.com/linchpin/figma-to-wordpress-theme-json-exporter"><img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" alt="Maintained: yes" /></a>
+			<a href="https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/blob/develop/LICENSE.md"><img src="https://img.shields.io/github/license/linchpin/figma-to-wordpress-theme-json-exporter" alt="License" /></a>
+			<a href="https://github.com/linchpin/figma-to-wordpress-theme-json-exporter"><img src="https://img.shields.io/badge/support-beta-blueviolet.svg" alt="Support: Beta" /></a>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			A <strong><a href="https://linchpin.com">Linchpin</a></strong> project · <em>Actively maintained</em> · Originally forked from <a href="https://github.com/10up/figma-to-wordpress-theme-json-exporter">10up's Figma to theme.json plugin</a>
+		</td>
+		<td align="center" width="30%">
+			<img src="https://assets.linchpin.com/linchpin-logo-primary.svg" width="100" alt="Linchpin" />
+		</td>
+	</tr>
+</table>
 
-This is a pretty major fork of the original 10up plugin. It is highly opinionated to the approach Linchpin takes to components being exported for our design systems and client websites
+## What is this plugin?
 
-The original 10up plugin may be a great base for your project or you can run with this one, however the baseline 10up one is more table and we have breaking changes
-in this experimental approach
+This Figma plugin converts Figma design tokens and variables into WordPress theme.json format, placing all variables under the `settings.custom` section according to WordPress standards. It streamlines the design-to-development workflow for WordPress block themes.
 
-[![Support Level](https://img.shields.io/badge/support-beta-blueviolet.svg)](#support-level) [![MIT License](https://img.shields.io/github/license/linchpin/linchpin-block-theme-json-export.svg)](https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/blob/develop/LICENSE.md)
+> **Note:** This is a heavily modified fork of the original [10up Figma to theme.json plugin](https://github.com/10up/figma-to-wordpress-theme-json-exporter). Our version is opinionated toward Linchpin's approach to component export for design systems and client websites. If you need a more stable, general-purpose solution, consider the original 10up plugin.
 
-> This Figma plugin converts Figma design tokens/variables into WordPress theme.json format, placing all variables under the `settings.custom` section according to WordPress standards.
+## Why use this plugin?
 
-## Features
+### **Design token conversion**
+- **Figma variables to theme.json** — Export colors, spacing, typography, and other design tokens directly to WordPress format.
+- **CSS custom properties** — Automatically converts variable references using WordPress naming conventions (`--wp--custom--*`).
+- **Proper structure** — Places all variables under `settings.custom` according to WordPress theme.json specification.
 
-- Export Figma variables (colors, numbers) into WordPress theme.json format
-- Merge variables into an existing theme.json file
-- Properly structures data according to WordPress theme.json specification
-- Converts variable references to CSS custom properties using WordPress naming convention
-- Maintains variable hierarchies and references
-- Special handling for color modes and sections
-- Automatic generation of button variant style files
-- Support for responsive/fluid variables
-- Automatic unit handling (px) for specific value types
-- Supports downloading the generated files as a zip package
-- **Typography presets** - Convert Figma text styles to WordPress typography presets
-- **Color presets** - Generate WordPress color palette from Figma color variables with customizable selection
-- **Spacing presets** - Create WordPress spacing presets from Figma spacing variables
-- Line height values converted from percentage to decimal format (e.g., 120% → 1.2)
-- Text decoration properties with proper color, thickness, and offset handling
-- Omits empty or invalid properties rather than using fallbacks
-- **Resizable plugin interface** for better workflow integration
-- **Multi-file export** with automatic zip packaging for complex themes
+### **Preset generation**
+- **Typography presets** — Convert Figma text styles to WordPress typography presets with proper line height conversion (120% → 1.2).
+- **Color presets** — Generate WordPress color palette from Figma color variables with customizable selection via an interactive modal.
+- **Spacing presets** — Create WordPress spacing presets from Figma spacing variables with automatic fluid spacing detection.
+
+### **Advanced features**
+- **Responsive/fluid variables** — Supports Desktop/Mobile mode pairs for fluid typography and spacing.
+- **Color modes & sections** — Export multiple color modes as separate WordPress style variation files.
+- **Button variants** — Automatic generation of button variant style files for WordPress block styles.
+- **Base theme merging** — Merge variables into an existing theme.json file while preserving all settings.
+
+### **Developer experience**
+- **Multi-file export** — Automatic zip packaging when exporting complex themes with multiple style files.
+- **Resizable interface** — Drag to resize the plugin window for better workflow integration.
+- **Clean output** — Omits empty or invalid properties rather than using fallbacks.
 
 ## Usage
 
@@ -350,56 +369,49 @@ For comprehensive information on specific features, see these detailed guides:
 
 ## Development
 
-This plugin uses TypeScript and the Figma Plugin API. To develop:
+This plugin uses TypeScript and the Figma Plugin API.
 
-1. Install dependencies: `npm install`
-2. Watch for changes: `npm run watch`
-3. Edit the code in `code.ts`
-
-The plugin will automatically transpile TypeScript to JavaScript.
-
-## Support Level
-
-**Beta:** This project is quite new and we're not sure what our ongoing support level for this will be.  Bug reports, feature requests, questions, and pull requests are welcome.  If you like this project please let us know, but be cautious using this in a Production environment!
-
-## Changelog
-
-A complete listing of all notable changes to this project are documented in [CHANGELOG.md](https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/blob/develop/CHANGELOG.md).
-
-## Contributing with Changesets
-
-This project uses [Changesets](https://github.com/changesets/changesets) for version management and changelog generation. When contributing, you'll need to include a changeset with your pull request.
-
-### Adding a Changeset
-
-When you make changes that should be released, run:
+| Dependency   | Description |
+| ------------ | ----------- |
+| **TypeScript** | Source language for type-safe development. |
+| **Figma Plugin API** | Interface for accessing Figma document data. |
+| **esbuild** | Fast bundler for building the plugin. |
 
 ```bash
-npm run changeset
+npm install        # Install dependencies
+npm run watch      # Watch for changes during development
+npm run build      # Build for production
 ```
 
-This will prompt you to:
-1. Select which packages should be bumped (for this single-package repo, select the main package)
-2. Choose the type of change (patch, minor, or major)
-3. Write a summary of your changes
+For architecture details and contribution guidelines, see [DEVELOPER.md](DEVELOPER.md).
 
-The changeset will be saved as a file in the `.changeset` directory and should be committed with your changes.
+## Support
 
-### Types of Changes
+**Beta:** This project is actively maintained but still evolving. Bug reports, feature requests, and pull requests are welcome. Please be cautious using this in production environments.
 
-- **Patch** (0.0.X): Bug fixes, documentation updates, internal changes
-- **Minor** (0.X.0): New features, enhancements that don't break existing functionality  
-- **Major** (X.0.0): Breaking changes that require users to update their code
+- [Open an issue](https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/issues) for bugs or feature requests
+- [View the changelog](https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/blob/develop/CHANGELOG.md) for release history
 
-### Changeset Requirements
+## Contributing
 
-- All pull requests must include a changeset (except for changes that don't affect the published package)
-- The CI will automatically check for changesets and fail if one is missing
-- If your change doesn't warrant a release (e.g., updating README, tests, or CI), you can create an empty changeset by running `npm run changeset` and selecting no packages to bump
+This project uses [Changesets](https://github.com/changesets/changesets) for version management. When contributing:
 
-### Release Process
+```bash
+npm run changeset   # Create a changeset for your changes
+```
 
-When changesets are merged to the main branch:
-1. A "Release" pull request will be automatically created
-2. This PR will update the version number and changelog
-3. When the Release PR is merged, the package will be automatically published to npm
+| Change Type | Version | Use Case |
+| ----------- | ------- | -------- |
+| **Patch** | 0.0.X | Bug fixes, documentation, internal changes |
+| **Minor** | 0.X.0 | New features, backwards-compatible enhancements |
+| **Major** | X.0.0 | Breaking changes |
+
+All pull requests require a changeset (except docs-only changes). When merged to main, a Release PR will be created automatically.
+
+## Credits
+
+This plugin is a fork of the original [Figma to theme.json plugin](https://github.com/10up/figma-to-wordpress-theme-json-exporter) by [10up](https://10up.com/). We appreciate their foundational work which made this project possible.
+
+## License
+
+[MIT License](LICENSE.md) · Copyright © [Linchpin](https://linchpin.com)
