@@ -14,10 +14,12 @@
   },
   "menu": [
     { "command": "export", "name": "Export to theme.json" },
+    { "command": "import", "name": "Import from theme.json" },
     { "command": "css-vars", "name": "Apply CSS Variable Syntax" }
   ],
-  "ui": { 
+  "ui": {
     "export": "export.html",
+    "import": "import.html",
     "css-vars": "css-vars.html"
   },
   "documentAccess": "dynamic-page"
