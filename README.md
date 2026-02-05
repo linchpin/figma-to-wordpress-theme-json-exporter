@@ -1,13 +1,13 @@
 <table width="100%">
 	<tr>
 		<td align="left" width="70%">
-			<strong>Figma to WordPress theme.json Exporter</strong><br />
-			A Figma plugin that converts design tokens and variables into WordPress theme.json format for seamless design-to-development workflows.
+			<strong>Figma WordPress theme.json Sync</strong><br />
+			A Figma plugin that syncs design tokens and variables between Figma and WordPress theme.json format for seamless design-to-development workflows.
 		</td>
 		<td align="center" width="30%">
-			<a href="https://github.com/linchpin/figma-to-wordpress-theme-json-exporter"><img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" alt="Maintained: yes" /></a>
-			<a href="https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/blob/develop/LICENSE.md"><img src="https://img.shields.io/github/license/linchpin/figma-to-wordpress-theme-json-exporter" alt="License" /></a>
-			<a href="https://github.com/linchpin/figma-to-wordpress-theme-json-exporter"><img src="https://img.shields.io/badge/support-beta-blueviolet.svg" alt="Support: Beta" /></a>
+			<a href="https://github.com/linchpin/figma-wordpress-theme-json-sync"><img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" alt="Maintained: yes" /></a>
+			<a href="https://github.com/linchpin/figma-wordpress-theme-json-sync/blob/develop/LICENSE.md"><img src="https://img.shields.io/github/license/linchpin/figma-wordpress-theme-json-sync" alt="License" /></a>
+			<a href="https://github.com/linchpin/figma-wordpress-theme-json-sync"><img src="https://img.shields.io/badge/support-beta-blueviolet.svg" alt="Support: Beta" /></a>
 		</td>
 	</tr>
 	<tr>
@@ -22,7 +22,7 @@
 
 ## What is this plugin?
 
-This Figma plugin converts Figma design tokens and variables into WordPress theme.json format, placing all variables under the `settings.custom` section according to WordPress standards. It streamlines the design-to-development workflow for WordPress block themes.
+This Figma plugin syncs design tokens and variables between Figma and WordPress theme.json format. It supports exporting Figma variables to theme.json, importing theme.json back into Figma, and creating variables from WordPress schema definitions. It streamlines the design-to-development workflow for WordPress block themes.
 
 > **Note:** This is a heavily modified fork of the original [10up Figma to theme.json plugin](https://github.com/10up/figma-to-wordpress-theme-json-exporter). Our version is opinionated toward Linchpin's approach to component export for design systems and client websites. If you need a more stable, general-purpose solution, consider the original 10up plugin.
 
@@ -389,8 +389,8 @@ For architecture details and contribution guidelines, see [DEVELOPER.md](wiki/DE
 
 **Beta:** This project is actively maintained but still evolving. Bug reports, feature requests, and pull requests are welcome. Please be cautious using this in production environments.
 
-- [Open an issue](https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/issues) for bugs or feature requests
-- [View the changelog](https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/blob/develop/CHANGELOG.md) for release history
+- [Open an issue](https://github.com/linchpin/figma-wordpress-theme-json-sync/issues) for bugs or feature requests
+- [View the changelog](https://github.com/linchpin/figma-wordpress-theme-json-sync/blob/develop/CHANGELOG.md) for release history
 
 ## Contributing
 
