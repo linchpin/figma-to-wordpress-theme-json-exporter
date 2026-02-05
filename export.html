@@ -932,6 +932,49 @@
 	  padding: calc(var(--spacing) / 4);
 	}
 
+	/* Validation Errors Styles */
+	.validation-errors {
+	  background-color: #f8d7da;
+	  border: 1px solid #f5c2c7;
+	  border-radius: 4px;
+	  padding: calc(var(--spacing) / 2);
+	  margin-bottom: var(--spacing);
+	  display: none;
+	}
+
+	.validation-errors.visible {
+	  display: block;
+	}
+
+	.validation-errors-title {
+	  font-weight: 600;
+	  color: #842029;
+	  margin-bottom: calc(var(--spacing) / 4);
+	  display: flex;
+	  align-items: center;
+	  gap: calc(var(--spacing) / 2);
+	  font-size: 0.85rem;
+	}
+
+	.validation-errors-list {
+	  list-style: none;
+	  padding: 0;
+	  margin: 0;
+	  max-height: 100px;
+	  overflow-y: auto;
+	}
+
+	.validation-errors-list li {
+	  font-size: 0.8rem;
+	  color: #842029;
+	  padding: calc(var(--spacing) / 4) 0;
+	  border-bottom: 1px solid rgba(132, 32, 41, 0.2);
+	}
+
+	.validation-errors-list li:last-child {
+	  border-bottom: none;
+	}
+
 	/* Validation Warnings Styles */
 	.validation-warnings {
 	  background-color: #fff3cd;
@@ -1167,6 +1210,15 @@
 				</div>
 			</div>
 
+			<!-- Validation Errors -->
+			<div class="validation-errors" id="validation-errors">
+				<div class="validation-errors-title">
+					Validation Errors
+				</div>
+				<ul class="validation-errors-list" id="validation-errors-list">
+				</ul>
+			</div>
+
 			<!-- Validation Warnings -->
 			<div class="validation-warnings" id="validation-warnings">
 				<div class="validation-warnings-title">
@@ -1182,6 +1234,7 @@
 
 			<div class="button-row">
 				<button id="export" type="button">Export Variables</button>
+				<button id="validate-export" type="button" class="secondary" style="display:none;">Validate Schema</button>
 				<button id="download" type="button">Download theme.json</button>
 			</div>
 			<div id="files-container">
@@ -1327,66 +1380,80 @@
 
 		currentFiles = pluginMessage.files;
 
-		// Handle validation warnings if present
+		// Handle validation errors and warnings if present
+		const validationErrors = pluginMessage.errors || [];
 		validationWarnings = pluginMessage.warnings || [];
+		displayValidationErrors(validationErrors);
 		displayValidationWarnings(validationWarnings);
-		
+
+		// Show validate button now that we have export data
+		document.getElementById("validate-export").style.display = "inline-block";
+
 		// Clear the files container
 		const filesContainer = document.getElementById('files-container');
 		filesContainer.innerHTML = '';
-		
+
 		// Add each file to the container
 		currentFiles.forEach((file, index) => {
 		  const { fileName, body } = file;
 		  const fileContent = JSON.stringify(body, null, 2);
-		  
+
 		  // Create file container
 		  const fileContainer = document.createElement('div');
 		  fileContainer.className = 'file-container';
-		  
+
 		  // Create file header with name and actions
 		  const fileHeader = document.createElement('div');
 		  fileHeader.className = 'file-header';
-		  
+
 		  const fileName2 = document.createElement('div');
 		  fileName2.className = 'file-name';
 		  fileName2.textContent = fileName;
-		  
+
 		  const fileActions = document.createElement('div');
 		  fileActions.className = 'file-actions';
-		  
+
 		  const copyButton = document.createElement('button');
 		  copyButton.className = 'copy-button';
 		  copyButton.textContent = 'Copy';
 		  copyButton.onclick = () => copyToClipboard(index);
-		  
+
 		  fileActions.appendChild(copyButton);
 		  fileHeader.appendChild(fileName2);
 		  fileHeader.appendChild(fileActions);
-		  
+
 		  // Create textarea for the file content
 		  const textarea = document.createElement('textarea');
 		  textarea.readOnly = true;
 		  textarea.id = `file-content-${index}`;
 		  textarea.value = fileContent;
-		  
+
 		  // Assemble the file container
 		  fileContainer.appendChild(fileHeader);
 		  fileContainer.appendChild(textarea);
-		  
+
 		  // Add to files container
 		  filesContainer.appendChild(fileContainer);
 		});
-		
+
 		// Show download button if we have files
 		if (currentFiles.length > 0) {
 		  document.getElementById("download").style.display = "block";
 		  // Update button text to indicate it's a zip download if multiple files
 		  const downloadBtn = document.getElementById("download");
-		  downloadBtn.textContent = currentFiles.length > 1 
-			? `Download Theme Files (${currentFiles.length} files)` 
+		  downloadBtn.textContent = currentFiles.length > 1
+			? `Download Theme Files (${currentFiles.length} files)`
 			: "Download theme.json";
 		}
+	  } else if (pluginMessage.type === "VALIDATE_EXPORT_RESULT") {
+		if (pluginMessage.error) {
+		  displayValidationErrors([pluginMessage.error]);
+		  return;
+		}
+
+		const validation = pluginMessage.validation;
+		displayValidationErrors(validation.errors || []);
+		displayValidationWarnings(validation.warnings || []);
 	  }
 	};
 
@@ -1598,7 +1665,31 @@
 	  toggleIcon.classList.toggle('collapsed');
 	});
 
-	// Validation warnings functionality
+	// Validation display functionality
+	function displayValidationErrors(errors) {
+	  const errorsContainer = document.getElementById('validation-errors');
+	  const errorsList = document.getElementById('validation-errors-list');
+
+	  if (!errors || errors.length === 0) {
+		errorsContainer.classList.remove('visible');
+		errorsList.innerHTML = '';
+		return;
+	  }
+
+	  errorsContainer.classList.add('visible');
+	  const errorsTitle = errorsContainer.querySelector('.validation-errors-title');
+	  errorsTitle.textContent = errors.length === 1
+		? '1 Validation Error'
+		: errors.length + ' Validation Errors';
+
+	  errorsList.innerHTML = '';
+	  errors.forEach(error => {
+		const li = document.createElement('li');
+		li.textContent = error;
+		errorsList.appendChild(li);
+	  });
+	}
+
 	function displayValidationWarnings(warnings) {
 	  const warningsContainer = document.getElementById('validation-warnings');
 	  const warningsList = document.getElementById('validation-warnings-list');
@@ -1610,14 +1701,34 @@
 	  }
 
 	  warningsContainer.classList.add('visible');
-	  warningsList.innerHTML = '';
+	  const warningsTitle = warningsContainer.querySelector('.validation-warnings-title');
+	  warningsTitle.textContent = warnings.length === 1
+		? '1 Validation Warning'
+		: warnings.length + ' Validation Warnings';
 
+	  warningsList.innerHTML = '';
 	  warnings.forEach(warning => {
 		const li = document.createElement('li');
 		li.textContent = warning;
 		warningsList.appendChild(li);
 	  });
 	}
+
+	// Standalone validate button
+	document.getElementById('validate-export').addEventListener('click', () => {
+	  if (!currentFiles || currentFiles.length === 0) return;
+
+	  // Find the theme.json file
+	  const themeFile = currentFiles.find(f => f.fileName === 'theme.json');
+	  if (!themeFile) return;
+
+	  parent.postMessage({
+		pluginMessage: {
+		  type: "VALIDATE_EXPORT",
+		  themeJson: themeFile.body
+		}
+	  }, "*");
+	});
 
 	// Color customization functionality
 	const colorPresetsCheckbox = document.getElementById("generate-color-presets");

@@ -7,6 +7,7 @@ import { applyCssVarSyntaxToVariables } from './utils/figma-variables';
 import { getDetectedBlocks } from './collections/processors/wp-blocks';
 import { isWordPressBlocksCollection, isGroupBasedBlocksCollection, extractWordPressBlockName, isCoreBlock } from './utils/index';
 import { importFromThemeJSON, validateThemeJSON, previewImport, checkExistingCollections, ImportOptions } from './import/index';
+import { validateThemeJson as validateExportThemeJson } from './utils/validation';
 import { createFromSchema, previewSchemaCreate, checkExistingSchemaCollections, SchemaCreateOptions } from './schema/index';
 
 figma.ui.onmessage = async (e) => {
@@ -111,6 +112,21 @@ figma.ui.onmessage = async (e) => {
 			figma.ui.postMessage({
 				type: "BLOCKS_RESULT",
 				error: error instanceof Error ? error.message : "Failed to get block collections"
+			});
+		}
+	} else if (e.type === "VALIDATE_EXPORT") {
+		// Validate an exported theme.json from the export UI
+		try {
+			const { themeJson } = e;
+			const validation = await validateExportThemeJson(themeJson, { allowCustomProperties: true });
+			figma.ui.postMessage({
+				type: "VALIDATE_EXPORT_RESULT",
+				validation
+			});
+		} catch (error) {
+			figma.ui.postMessage({
+				type: "VALIDATE_EXPORT_RESULT",
+				error: error instanceof Error ? error.message : "Validation failed"
 			});
 		}
 	}

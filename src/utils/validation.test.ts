@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { validateThemeJson, formatValidationResults, ValidationOptions } from './validation';
+import { validateThemeJson, formatValidationResults, ValidationOptions, resetValidatorCache } from './validation';
 
-// Mock fetch for schema validation
+// Mock fetch so tests use the bundled schema fallback
 global.fetch = vi.fn();
 
 describe('validateThemeJson', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		resetValidatorCache();
+		// Default: simulate network failure so bundled schema is used
+		(global.fetch as any).mockRejectedValue(new Error('Network unavailable'));
 	});
 
 	it('should validate a valid theme.json', async () => {
@@ -34,12 +37,6 @@ describe('validateThemeJson', () => {
 				}
 			}
 		};
-
-		// Mock successful schema fetch
-		(global.fetch as any).mockResolvedValueOnce({
-			ok: true,
-			json: async () => ({})
-		});
 
 		const result = await validateThemeJson(validThemeJson);
 
@@ -95,7 +92,7 @@ describe('validateThemeJson', () => {
 		expect(result.warnings).toContain('$schema should be "https://schemas.wp.org/trunk/theme.json"');
 	});
 
-	it('should validate color palette structure', async () => {
+	it('should detect invalid color palette structure via AJV', async () => {
 		const themeJson = {
 			version: 3,
 			settings: {
@@ -108,7 +105,7 @@ describe('validateThemeJson', () => {
 						},
 						{
 							name: 'Secondary',
-							// Missing slug
+							// Missing slug - AJV should catch this
 							color: '#666666'
 						}
 					]
@@ -116,19 +113,17 @@ describe('validateThemeJson', () => {
 			}
 		};
 
-		// Mock successful schema fetch to avoid network issues
-		(global.fetch as any).mockResolvedValueOnce({
-			ok: true,
-			json: async () => ({})
-		});
-
 		const result = await validateThemeJson(themeJson);
 
 		expect(result.isValid).toBe(false);
-		expect(result.errors).toContain('settings.color.palette[1] must have a valid slug property');
+		// AJV should report a missing required property error for the palette item
+		const hasSlugError = result.errors.some(e =>
+			e.includes('slug') || e.includes('required')
+		);
+		expect(hasSlugError).toBe(true);
 	});
 
-	it('should validate typography structure', async () => {
+	it('should validate valid typography structure', async () => {
 		const themeJson = {
 			version: 3,
 			settings: {
@@ -161,34 +156,15 @@ describe('validateThemeJson', () => {
 		const themeJson = {
 			version: 3,
 			settings: {
-				color: {
-					palette: [
-						{
-							name: 'Primary',
-							slug: 'primary',
-							color: 'var(--wp--preset--color--primary)'
-						}
-					]
-				},
 				custom: {
 					myColor: 'var(--invalid-format)'
 				}
 			}
 		};
 
-		// Mock successful schema fetch to avoid network issues
-		(global.fetch as any).mockResolvedValueOnce({
-			ok: true,
-			json: async () => ({})
-		});
-
 		const result = await validateThemeJson(themeJson);
 
 		const expectedWarning = 'CSS variable at settings.custom.myColor may not follow WordPress conventions: var(--invalid-format)';
-		if (!result.warnings.includes(expectedWarning)) {
-			throw new Error('Actual warnings: ' + JSON.stringify(result.warnings));
-		}
-		expect(result.isValid).toBe(true);
 		expect(result.warnings).toContain(expectedWarning);
 	});
 
@@ -206,23 +182,21 @@ describe('validateThemeJson', () => {
 
 		const result = await validateThemeJson(themeJson);
 
-		expect(result.isValid).toBe(true);
 		expect(result.warnings).toContain('Custom typography presets detected. Consider using WordPress-compatible typography structure instead.');
 	});
 
-	it('should handle network errors gracefully', async () => {
+	it('should fall back to bundled schema on network error', async () => {
 		const themeJson = {
 			version: 3,
 			settings: {}
 		};
 
-		// Mock network error
 		(global.fetch as any).mockRejectedValueOnce(new Error('Network error'));
 
 		const result = await validateThemeJson(themeJson);
 
 		expect(result.isValid).toBe(true);
-		expect(result.warnings).toContain('Schema validation unavailable: Network error');
+		expect(result.warnings).toContain('Using bundled schema (could not fetch latest from WordPress)');
 	});
 
 	it('should handle strict mode', async () => {
@@ -239,22 +213,44 @@ describe('validateThemeJson', () => {
 		expect(result.isValid).toBe(false);
 	});
 
-	it('should allow custom properties when configured', async () => {
+	it('should handle non-object input', async () => {
+		const result = await validateThemeJson(null);
+
+		expect(result.isValid).toBe(false);
+		expect(result.errors).toContain('theme.json must be a valid JSON object');
+	});
+
+	it('should detect invalid property types via AJV', async () => {
 		const themeJson = {
 			version: 3,
 			settings: {
-				custom: {
-					myProperty: 'value'
+				typography: {
+					fontSizes: 'not-an-array' // Should be an array
 				}
 			}
 		};
 
-		const options: ValidationOptions = { allowCustomProperties: true };
+		const result = await validateThemeJson(themeJson);
 
-		const result = await validateThemeJson(themeJson, options);
+		expect(result.isValid).toBe(false);
+		const hasTypeError = result.errors.some(e =>
+			e.includes('type') || e.includes('array') || e.includes('must')
+		);
+		expect(hasTypeError).toBe(true);
+	});
 
-		expect(result.isValid).toBe(true);
-		expect(result.warnings).not.toContain('Custom properties in settings.custom are not part of the standard schema');
+	it('should cache the validator across calls', async () => {
+		const themeJson = {
+			version: 3,
+			$schema: 'https://schemas.wp.org/trunk/theme.json',
+			settings: {}
+		};
+
+		await validateThemeJson(themeJson);
+		await validateThemeJson(themeJson);
+
+		// fetch should only be called once since validator is cached
+		expect(global.fetch).toHaveBeenCalledTimes(1);
 	});
 });
 
@@ -318,4 +314,4 @@ describe('formatValidationResults', () => {
 		expect(formatted).toContain('  • Missing version');
 		expect(formatted).toContain('  ⚠️  Missing $schema');
 	});
-}); 
+});

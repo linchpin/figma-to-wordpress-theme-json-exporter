@@ -1,10 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { exportToJSON } from './index';
 import { mockFigma } from '../test-setup';
+import { resetValidatorCache } from '../utils/validation';
+
+// Mock fetch for schema validation in export flow
+global.fetch = vi.fn();
 
 describe('Export Functions', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		resetValidatorCache();
+		// Default: simulate network failure so bundled schema is used
+		(global.fetch as any).mockRejectedValue(new Error('Network unavailable'));
 	});
 
 	describe('exportToJSON', () => {
@@ -13,28 +20,16 @@ describe('Export Functions', () => {
 
 			await exportToJSON();
 
-            expect(mockFigma.ui.postMessage).toHaveBeenCalledWith({
-				type: "EXPORT_RESULT",
-				files: [{
-					fileName: "theme.json",
-					body: {
-						"$schema": "https://schemas.wp.org/trunk/theme.json",
-						"version": 3,
-						"settings": {
-                            "custom": {}
-						}
-					}
-				}],
-				validation: {
-					isValid: true,
-					message: "✅ Theme.json validation passed!",
-					details: {
-						isValid: true,
-						errors: [],
-						warnings: []
-					}
-				}
-			});
+			const call = mockFigma.ui.postMessage.mock.calls[0][0];
+			expect(call.type).toBe("EXPORT_RESULT");
+			expect(call.files).toHaveLength(1);
+			expect(call.files[0].fileName).toBe("theme.json");
+			expect(call.files[0].body.$schema).toBe("https://schemas.wp.org/trunk/theme.json");
+			expect(call.files[0].body.version).toBe(3);
+			expect(call.files[0].body.settings.custom).toEqual({});
+			expect(call.isValid).toBe(true);
+			expect(call.errors).toEqual([]);
+		});
 
   it('should map wp.elements root collection into theme.styles.elements', async () => {
     const collections = [
@@ -118,7 +113,6 @@ describe('Export Functions', () => {
     expect(elements.button.typography.fontsize).toBe('16px');
     expect(elements.button.border.radius).toBe('6px');
   });
-		});
 
 		it('should use provided base theme', async () => {
 			const baseTheme = {
@@ -135,30 +129,10 @@ describe('Export Functions', () => {
 
 			await exportToJSON({ baseTheme });
 
-			expect(mockFigma.ui.postMessage).toHaveBeenCalledWith({
-				type: "EXPORT_RESULT",
-				files: [{
-					fileName: "theme.json",
-					body: {
-						"$schema": "https://schemas.wp.org/trunk/theme.json",
-						"version": 3,
-						"settings": {
-							"custom": {
-								"existing": "value"
-							}
-						}
-					}
-				}],
-				validation: {
-					isValid: true,
-					message: "✅ Theme.json validation passed!",
-					details: {
-						isValid: true,
-						errors: [],
-						warnings: []
-					}
-				}
-			});
+			const call = mockFigma.ui.postMessage.mock.calls[0][0];
+			expect(call.type).toBe("EXPORT_RESULT");
+			expect(call.files[0].body.settings.custom.existing).toBe("value");
+			expect(call.isValid).toBe(true);
 		});
 
 		it('should process primitives collection first', async () => {
@@ -193,37 +167,10 @@ describe('Export Functions', () => {
 
 			await exportToJSON();
 
-			expect(mockFigma.ui.postMessage).toHaveBeenCalledWith({
-				type: "EXPORT_RESULT",
-				files: [{
-					fileName: "theme.json",
-					body: {
-						"$schema": "https://schemas.wp.org/trunk/theme.json",
-						"version": 3,
-						"settings": {
-							"custom": {
-								"spacing": {
-									"base": "16px"
-								},
-								"color": {
-									"color": {
-										"primary": "#ff0000"
-									}
-								}
-							}
-						}
-					}
-				}],
-				validation: {
-					isValid: true,
-					message: "✅ Theme.json validation passed!",
-					details: {
-						isValid: true,
-						errors: [],
-						warnings: []
-					}
-				}
-			});
+			const call = mockFigma.ui.postMessage.mock.calls[0][0];
+			expect(call.type).toBe("EXPORT_RESULT");
+			expect(call.files[0].body.settings.custom.spacing).toEqual({ base: "16px" });
+			expect(call.isValid).toBe(true);
 		});
 
 		it('should handle color collection with multiple modes', async () => {
@@ -391,30 +338,11 @@ describe('Export Functions', () => {
 
 			await exportToJSON();
 
-            expect(mockFigma.ui.postMessage).toHaveBeenCalledWith({
-				type: "EXPORT_RESULT",
-				files: [{
-					fileName: "theme.json",
-					body: {
-						"$schema": "https://schemas.wp.org/trunk/theme.json",
-						"version": 3,
-						"settings": {
-							"custom": {
-                                // with new registry we ignore non-wp collections by default
-							}
-						}
-					}
-				}],
-				validation: {
-					isValid: true,
-					message: "✅ Theme.json validation passed!",
-					details: {
-						isValid: true,
-						errors: [],
-						warnings: []
-					}
-				}
-			});
+			const call = mockFigma.ui.postMessage.mock.calls[0][0];
+			expect(call.type).toBe("EXPORT_RESULT");
+			// with new registry we ignore non-wp collections by default
+			expect(call.files[0].body.settings.custom).toEqual({});
+			expect(call.isValid).toBe(true);
 		});
 
 		it('should generate typography presets when requested', async () => {

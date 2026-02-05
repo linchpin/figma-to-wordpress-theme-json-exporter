@@ -21,6 +21,7 @@ import { getColorPresets, getColorPresetsWithValues } from "../color/index";
 import { getSpacingPresets } from "../spacing/index";
 import { sanitizeCollectionName } from "../utils/css";
 import { dispatchCollection } from "../collections/registry";
+import { validateThemeJson } from "../utils/validation";
 
 export async function exportToJSON(options: ExportOptions = {}) {
 	// Clear the set of processed button variants at the start of a new export
@@ -219,9 +220,15 @@ export async function exportToJSON(options: ExportOptions = {}) {
 		}
 	}
 
+	// Validate the assembled theme.json before sending
+	const validation = await validateThemeJson(theme, { allowCustomProperties: true });
+
 	// Send the result back to the UI
 	figma.ui.postMessage({
 		type: "EXPORT_RESULT",
 		files: allFiles,
+		warnings: validation.warnings,
+		errors: validation.errors,
+		isValid: validation.isValid,
 	});
 }
