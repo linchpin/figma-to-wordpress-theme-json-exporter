@@ -5,9 +5,9 @@
 			A Figma plugin that exports Figma variables to WordPress theme.json, imports theme.json back into Figma variables, and validates files for seamless design-to-development workflows.
 		</td>
 		<td align="center" width="30%">
-			<a href="https://github.com/linchpin/figma-to-wordpress-theme-json-exporter"><img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" alt="Maintained: yes" /></a>
-			<a href="https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/blob/develop/LICENSE.md"><img src="https://img.shields.io/github/license/linchpin/figma-to-wordpress-theme-json-exporter" alt="License" /></a>
-			<a href="https://github.com/linchpin/figma-to-wordpress-theme-json-exporter"><img src="https://img.shields.io/badge/support-beta-blueviolet.svg" alt="Support: Beta" /></a>
+			<a href="https://github.com/linchpin/figma-wordpress-theme-json-sync"><img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" alt="Maintained: yes" /></a>
+			<a href="https://github.com/linchpin/figma-wordpress-theme-json-sync/blob/develop/LICENSE.md"><img src="https://img.shields.io/github/license/linchpin/figma-wordpress-theme-json-sync" alt="License" /></a>
+			<a href="https://github.com/linchpin/figma-wordpress-theme-json-sync"><img src="https://img.shields.io/badge/support-beta-blueviolet.svg" alt="Support: Beta" /></a>
 		</td>
 	</tr>
 	<tr>
@@ -418,8 +418,8 @@ For architecture details and contribution guidelines, see [DEVELOPER.md](wiki/DE
 
 **Beta:** This project is actively maintained but still evolving. Bug reports, feature requests, and pull requests are welcome. Please be cautious using this in production environments.
 
-- [Open an issue](https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/issues) for bugs or feature requests
-- [View the changelog](https://github.com/linchpin/figma-to-wordpress-theme-json-exporter/blob/develop/CHANGELOG.md) for release history
+- [Open an issue](https://github.com/linchpin/figma-wordpress-theme-json-sync/issues) for bugs or feature requests
+- [View the changelog](https://github.com/linchpin/figma-wordpress-theme-json-sync/blob/develop/CHANGELOG.md) for release history
 
 ## Contributing
 
