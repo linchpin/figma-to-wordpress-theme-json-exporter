@@ -2,7 +2,7 @@
 	<tr>
 		<td align="left" width="70%">
 			<strong>Figma to WordPress theme.json Exporter</strong><br />
-			A Figma plugin that converts design tokens and variables into WordPress theme.json format for seamless design-to-development workflows.
+			A Figma plugin that exports Figma variables to WordPress theme.json, imports theme.json back into Figma variables, and validates files for seamless design-to-development workflows.
 		</td>
 		<td align="center" width="30%">
 			<a href="https://github.com/linchpin/figma-to-wordpress-theme-json-exporter"><img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" alt="Maintained: yes" /></a>
@@ -22,9 +22,9 @@
 
 ## What is this plugin?
 
-This Figma plugin converts Figma design tokens and variables into WordPress theme.json format, placing all variables under the `settings.custom` section according to WordPress standards. It streamlines the design-to-development workflow for WordPress block themes.
+This Figma plugin powers a bidirectional workflow between Figma variables and WordPress theme.json. It exports design tokens into theme.json (placing custom variables under `settings.custom`), imports theme.json back into Figma variable collections, and validates theme.json files before you create or merge variables.
 
-> **Note:** This is a heavily modified fork of the original [10up Figma to theme.json plugin](https://github.com/10up/figma-to-wordpress-theme-json-exporter). Our version is opinionated toward Linchpin's approach to component export for design systems and client websites. If you need a more stable, general-purpose solution, consider the original 10up plugin.
+> **Note:** This is a heavily modified fork of the original [10up Figma to theme.json plugin](https://github.com/10up/figma-to-wordpress-theme-json-exporter). This fork has changed dramatically and is now the more stable, actively evolving track for our workflows. The 10up version remains supported and stays closer to the original scope.
 
 ## Why use this plugin?
 
@@ -37,6 +37,11 @@ This Figma plugin converts Figma design tokens and variables into WordPress them
 - **Typography presets** — Convert Figma text styles to WordPress typography presets with proper line height conversion (120% → 1.2).
 - **Color presets** — Generate WordPress color palette from Figma color variables with customizable selection via an interactive modal.
 - **Spacing presets** — Create WordPress spacing presets from Figma spacing variables with automatic fluid spacing detection.
+
+### **Bidirectional workflow**
+- **theme.json import** — Create Figma variable collections from `settings.custom`, `settings.color.palette`, `settings.typography.fontSizes`, and `settings.spacing.spacingSizes`.
+- **Preview + conflict checks** — See what collections and variables will be created before importing.
+- **Schema-aware validation** — Validates theme.json structure and schema (when available) with actionable errors and warnings.
 
 ### **Advanced features**
 - **Responsive/fluid variables** — Supports Desktop/Mobile mode pairs for fluid typography and spacing.
@@ -51,7 +56,9 @@ This Figma plugin converts Figma design tokens and variables into WordPress them
 
 ## Usage
 
-### Basic Export
+### Export to theme.json
+
+For a full export walkthrough, presets, and multi-file output details, see **[EXPORT-GUIDE.md](wiki/EXPORT-GUIDE.md)**.
 
 1. **To export Figma variables to theme.json:**
    - Go to Menu > Plugins > WordPress Theme.json Export > Export to theme.json
@@ -61,7 +68,7 @@ This Figma plugin converts Figma design tokens and variables into WordPress them
    - View the generated theme.json and additional style files in the plugin UI
    - Click "Download Theme Files" to save all files as a zip package
 
-### Advanced Options
+### Export Options
 
 2. **To merge with an existing theme.json:**
    - Click "Choose File" in the Base theme.json section
@@ -89,6 +96,27 @@ This Figma plugin converts Figma design tokens and variables into WordPress them
    - The plugin automatically detects spacing-related variables
    - Spacing presets are added to `settings.spacing.spacingSizes`
    - See [SPACING-GUIDE.md](wiki/SPACING-GUIDE.md) for detailed information
+
+### Import from theme.json
+
+1. **To create Figma variables from a theme.json file:**
+   - Go to Menu > Plugins > WordPress Theme.json Export > Import from theme.json
+   - Upload a theme.json file or paste JSON directly
+   - Review validation status and warnings before continuing
+   - Preview which collections and variables will be created
+   - Click "Import" to create variable collections in Figma
+
+2. **Importable sections (v3):**
+   - `settings.custom` → Primitives collection
+   - `settings.color.palette` → `wp.settings.colors` collection
+   - `settings.typography.fontSizes` → `wp.settings.typography` collection
+   - `settings.spacing.spacingSizes` → `wp.settings.spacing` collection
+
+### Validation
+
+- Validation runs before preview/import and reports errors and warnings inline.
+- Checks include required fields, version, structural rules, and schema validation (when the WordPress schema is reachable).
+- Warnings highlight missing sections, unsupported areas, or unknown top-level keys so you can fix issues before import.
 
 ### Plugin Interface Features
 
@@ -357,6 +385,7 @@ All files are packed into a single zip download for easy use in WordPress themes
 
 For comprehensive information on specific features, see these detailed guides:
 
+- **[EXPORT-GUIDE.md](wiki/EXPORT-GUIDE.md)** - Full export workflow, presets, and output details
 - **[INSTALL.md](wiki/INSTALL.md)** - Complete installation and setup instructions
 - **[NAMING-CONVENTIONS.md](wiki/NAMING-CONVENTIONS.md)** - Complete naming conventions reference for collections and variables
 - **[BLOCKS-GUIDE.md](wiki/BLOCKS-GUIDE.md)** - Block-level styling with `wp.blocks.*` collections
