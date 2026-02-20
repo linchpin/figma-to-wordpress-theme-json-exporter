@@ -45,7 +45,7 @@
 	"dependencies": {
 		"@figma/eslint-plugin-figma-plugins": "^0.16.1",
 		"@typescript-eslint/parser": "^6.21.0",
-		"ajv": "^8.17.1",
+		"ajv": "^8.18.0",
 		"ajv-formats": "^3.0.1"
 	}
 }
