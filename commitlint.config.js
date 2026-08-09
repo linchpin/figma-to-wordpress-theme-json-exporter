@@ -1,24 +1,16 @@
+/**
+ * Commit linting for this project.
+ *
+ * The rules live in @linchpinagency/commitlint-config so every Linchpin project
+ * lints commits the same way and a convention change ships from one place
+ * instead of drifting per repo.
+ *
+ * Format example
+ *
+ *   feat(PROJ-123): Add new feature
+ *
+ * or, with no task, NO-TASK or a GitHub issue number such as #42.
+ */
 module.exports = {
-	extends: ['@commitlint/config-conventional'],
-	rules: {
-		'type-enum': [
-			2,
-			'always',
-			[
-				'feat',
-				'fix',
-				'docs',
-				'style',
-				'refactor',
-				'perf',
-				'test',
-				'build',
-				'ci',
-				'chore',
-				'revert',
-			],
-		],
-		'subject-case': [2, 'never', ['start-case', 'pascal-case', 'upper-case']],
-		'header-max-length': [2, 'always', 100],
-	},
+	extends: [ '@linchpinagency/commitlint-config' ],
 };
